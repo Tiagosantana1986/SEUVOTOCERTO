@@ -535,47 +535,59 @@
 
     // ==================== PDF ====================
     async function gerarPDF() {
-        const votos = validarVotos(document.getElementById('totalVotos').value);
-        const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
-        const dados = calcularResultado(App.partidos, votos, cadeiras);
-        if (!dados) { showToast('Nenhum dado para gerar PDF', 'error'); return false; }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = doc.internal.pageSize.getWidth();
-        doc.setFontSize(18);
-        doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
-        doc.setFontSize(10);
-        doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
-        doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
-        doc.autoTable({
-            startY: 48,
-            head: [['Partido','Total Votos','Diretas','Sobras','Total']],
-            body: dados.partidos.map(p => {
-                let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
-                return [p.nome, p.total, v.diretas, v.sobras, v.total];
-            }),
-            theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [15,118,110] }
-        });
-        let y = doc.lastAutoTable.finalY + 10;
-        doc.text("Candidatos Eleitos", 14, y);
-        y += 6;
-        doc.autoTable({
-            startY: y,
-            head: [['Partido','Candidato','Votos','Tipo']],
-            body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]),
-            theme: 'striped', styles: { fontSize: 9 }
-        });
-        doc.setFontSize(8);
-        doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
-        doc.save("relatorio_seu_voto_certo.pdf");
-        return true;
+        try {
+            const votos = validarVotos(document.getElementById('totalVotos').value);
+            const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
+            const dados = calcularResultado(App.partidos, votos, cadeiras);
+            if (!dados) { showToast('Nenhum dado para gerar PDF', 'error'); return false; }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            doc.setFontSize(18);
+            doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
+            doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
+            doc.autoTable({
+                startY: 48,
+                head: [['Partido','Total Votos','Diretas','Sobras','Total']],
+                body: dados.partidos.map(p => {
+                    let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
+                    return [p.nome, p.total, v.diretas, v.sobras, v.total];
+                }),
+                theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [15,118,110] }
+            });
+            let y = doc.lastAutoTable.finalY + 10;
+            doc.text("Candidatos Eleitos", 14, y);
+            y += 6;
+            doc.autoTable({
+                startY: y,
+                head: [['Partido','Candidato','Votos','Tipo']],
+                body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]),
+                theme: 'striped', styles: { fontSize: 9 }
+            });
+            doc.setFontSize(8);
+            doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
+            doc.save("relatorio_seu_voto_certo.pdf");
+            showToast("PDF gerado com sucesso!");
+            return true;
+        } catch (err) {
+            console.error(err);
+            showToast("Erro ao gerar PDF: " + err.message, "error");
+            return false;
+        }
     }
 
     async function salvarCenarioComPdf() {
         const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
         if (!nome) return;
-        await gerarPDF();
-        App.salvarCenarioAtual(nome, true);
+        // Gera o PDF primeiro
+        const pdfOk = await gerarPDF();
+        if (pdfOk) {
+            App.salvarCenarioAtual(nome, true);
+        } else {
+            showToast("Falha na geração do PDF. Cenário não salvo.", "error");
+        }
     }
 
     // ==================== CSV ====================
