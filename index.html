@@ -180,63 +180,6 @@
             margin-top: 28px;
             color: #6a8eaa;
         }
-        /* Estilos para o relatório oficial (janela separada) */
-        .relatorio-body {
-            font-family: 'Times New Roman', serif;
-            margin: 2cm;
-            background: white;
-            color: black;
-            line-height: 1.4;
-        }
-        .relatorio-body h1 {
-            font-size: 24pt;
-            text-align: center;
-            color: #1e4663;
-            margin-bottom: 10px;
-        }
-        .relatorio-body h2 {
-            font-size: 18pt;
-            text-align: center;
-            border-bottom: 2px solid #1e4663;
-            padding-bottom: 5px;
-            margin-top: 30px;
-        }
-        .relatorio-body .cabecalho {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .relatorio-body .info-eleicao {
-            margin: 20px 0;
-            font-size: 12pt;
-        }
-        .relatorio-body table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 11pt;
-        }
-        .relatorio-body th, .relatorio-body td {
-            border: 1px solid #999;
-            padding: 8px 6px;
-            text-align: left;
-            vertical-align: top;
-        }
-        .relatorio-body th {
-            background: #eef4fc;
-            text-align: center;
-        }
-        .relatorio-body .rodape {
-            margin-top: 50px;
-            font-size: 9pt;
-            text-align: center;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-        }
-        .relatorio-body .assinatura {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-        }
     </style>
 </head>
 <body>
@@ -259,7 +202,7 @@
         <button id="calcularBtn" class="btn-primary">📊 Calcular Eleição</button>
         <button id="exemploBtn" class="btn-outline">📋 Carregar Exemplo Didático</button>
         <button id="resetPartidosBtn" class="btn-outline btn-danger">🗑️ Remover Todos Partidos</button>
-        <button id="gerarRelatorioBtn" class="btn-outline">📄 Gerar Relatório Oficial</button>
+        <button id="gerarRelatorioBtn" class="btn-outline">📄 Gerar Relatório Oficial (1 página)</button>
     </div>
 
     <div class="toolbar">
@@ -279,7 +222,7 @@
     <div id="resultados" class="resultados-area">
         ⚡ Clique em "Calcular Eleição".
     </div>
-    <footer>🔍 <strong>SEU VOTO CERTO</strong> – Algoritmo corrigido: cada candidato eleito aparece uma única vez. Todas as sobras são preenchidas redistribuindo vagas quando o partido não tem candidato elegível. Clique em "Gerar Relatório Oficial" para obter um documento profissional em PDF.</footer>
+    <footer>🔍 <strong>SEU VOTO CERTO</strong> – Algoritmo corrigido: cada candidato eleito aparece uma única vez. Todas as sobras são preenchidas redistribuindo vagas quando o partido não tem candidato elegível. Clique em "Gerar Relatório Oficial" para obter um documento profissional em PDF (otimizado para uma página).</footer>
 </div>
 
 <script>
@@ -535,7 +478,7 @@
         };
     }
     
-    // Gerar relatório oficial em nova janela
+    // Gerar relatório oficial em nova janela, otimizado para UMA PÁGINA
     function gerarRelatorioOficial() {
         const dados = obterResultadoEleicao();
         if (!dados) {
@@ -551,84 +494,106 @@
             <meta charset="UTF-8">
             <title>Relatório Oficial - SEU VOTO CERTO</title>
             <style>
+                /* Reset e layout para uma única página */
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
                 body {
                     font-family: 'Times New Roman', Times, serif;
-                    margin: 2.5cm;
                     background: white;
                     color: black;
+                    margin: 1.8cm 1.5cm;
+                    font-size: 11pt;
+                    line-height: 1.3;
                 }
                 h1 {
-                    font-size: 24pt;
+                    font-size: 20pt;
                     text-align: center;
-                    margin-bottom: 5px;
+                    margin-bottom: 4px;
                 }
                 h2 {
-                    font-size: 18pt;
+                    font-size: 14pt;
                     text-align: center;
-                    border-bottom: 2px solid #1e4663;
-                    padding-bottom: 5px;
-                    margin-top: 30px;
+                    border-bottom: 1px solid #333;
+                    margin: 12px 0 8px 0;
+                    padding-bottom: 3px;
                 }
                 .cabecalho {
                     text-align: center;
-                    margin-bottom: 20px;
+                    margin-bottom: 12px;
                 }
                 .info-eleicao {
-                    margin: 20px 0;
-                    font-size: 12pt;
-                    line-height: 1.4;
+                    margin: 10px 0;
+                    font-size: 10pt;
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                }
+                .info-eleicao div {
+                    width: 48%;
                 }
                 table {
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 20px 0;
-                    font-size: 11pt;
+                    margin: 8px 0;
+                    font-size: 9.5pt;
                 }
                 th, td {
-                    border: 1px solid #333;
-                    padding: 8px 6px;
+                    border: 1px solid #111;
+                    padding: 5px 4px;
                     vertical-align: top;
                 }
                 th {
                     background: #eef4fc;
                     text-align: center;
                 }
+                .total-vagas {
+                    font-weight: bold;
+                }
                 .rodape {
-                    margin-top: 50px;
-                    font-size: 9pt;
+                    margin-top: 20px;
+                    font-size: 8pt;
                     text-align: center;
                     border-top: 1px solid #aaa;
-                    padding-top: 10px;
+                    padding-top: 6px;
                 }
                 .assinatura {
                     display: flex;
                     justify-content: space-between;
-                    margin-top: 40px;
+                    margin-top: 20px;
+                    font-size: 9pt;
                 }
-                .total-vagas {
-                    font-weight: bold;
-                    text-align: center;
+                /* Garantir que não haja quebra de página desnecessária */
+                @media print {
+                    body {
+                        margin: 1.5cm;
+                    }
+                    h2, table, .assinatura {
+                        page-break-inside: avoid;
+                    }
                 }
             </style>
         </head>
         <body>
             <div class="cabecalho">
                 <h1>SEU VOTO CERTO</h1>
-                <p>Sistema Oficial de Apuração de Eleições Proporcionais</p>
-                <p><strong>Relatório de Resultado Final</strong></p>
+                <p style="font-size: 10pt;">Sistema de Apuração de Eleições Proporcionais</p>
+                <p><strong>RELATÓRIO OFICIAL DE RESULTADO FINAL</strong></p>
                 <p>Gerado em: ${dataAtual}</p>
             </div>
             
             <h2>1. Dados da Eleição</h2>
             <div class="info-eleicao">
-                <p><strong>Total de votos válidos:</strong> ${dados.votosValidos.toLocaleString()}</p>
-                <p><strong>Número de cadeiras (vagas):</strong> ${dados.cadeiras}</p>
-                <p><strong>Quociente Eleitoral (QE):</strong> ${dados.QE} votos</p>
-                <p><strong>Exigência mínima para partido disputar sobras (80% do QE):</strong> ${dados.limitePartido80} votos</p>
-                <p><strong>Exigência mínima para candidato ocupar vaga de sobra (20% do QE):</strong> ${dados.limiteCandidato20} votos</p>
-                <p><strong>Vagas diretas preenchidas pelo quociente partidário:</strong> ${dados.totalDiretas}</p>
-                <p><strong>Vagas distribuídas pelo sistema de sobras:</strong> ${dados.sobrasDistribuidas}</p>
-                ${dados.sobrasNaoPreenchidas > 0 ? `<p style="color:red;"><strong>Atenção:</strong> ${dados.sobrasNaoPreenchidas} vaga(s) de sobra não puderam ser preenchidas por falta de candidatos elegíveis.</p>` : ''}
+                <div><strong>Votos válidos:</strong> ${dados.votosValidos.toLocaleString()}</div>
+                <div><strong>Cadeiras (vagas):</strong> ${dados.cadeiras}</div>
+                <div><strong>Quociente Eleitoral (QE):</strong> ${dados.QE} votos</div>
+                <div><strong>80% do QE (partido):</strong> ${dados.limitePartido80} votos</div>
+                <div><strong>20% do QE (candidato):</strong> ${dados.limiteCandidato20} votos</div>
+                <div><strong>Vagas diretas:</strong> ${dados.totalDiretas}</div>
+                <div><strong>Vagas de sobra:</strong> ${dados.sobrasDistribuidas}</div>
+                ${dados.sobrasNaoPreenchidas > 0 ? `<div style="color:red;"><strong>Vagas não preenchidas:</strong> ${dados.sobrasNaoPreenchidas}</div>` : ''}
             </div>
             
             <h2>2. Distribuição de Vagas por Partido</h2>
@@ -640,40 +605,31 @@
                     ${dados.partidosAptos.map(p => {
                         let dir = dados.vagasDiretas[p.nome] || 0;
                         let sob = dados.eleitos.filter(e => e.partido === p.nome && e.tipo === 'Sobra').length;
-                        return `<tr><td>${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></tr>`;
+                        return `<tr><td><strong>${p.nome}</strong></td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></tr>`;
                     }).join('')}
                 </tbody>
             </table>
             
-            <h2>3. Relação de Candidatos Eleitos</h2>
+            <h2>3. Candidatos Eleitos</h2>
             <table>
                 <thead>
-                    <tr><th>Partido</th><th>Nome do Candidato</th><th>Votos Nominais</th><th>Tipo de Vaga</th></tr>
+                    <tr><th>Partido</th><th>Candidato</th><th>Votos Nominais</th><th>Tipo de Vaga</th></tr>
                 </thead>
                 <tbody>
                     ${dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido)).map(e => `
-                        <tr>
-                            <td>${e.partido}</td>
-                            <td>${e.candidato}</td>
-                            <td style="text-align:right">${e.votos.toLocaleString()}</td>
-                            <td style="text-align:center">${e.tipo}</td>
-                        </tr>
+                        <tr><td>${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td style="text-align:center">${e.tipo}</td></tr>
                     `).join('')}
                 </tbody>
             </table>
             
-            <h2>4. Observações</h2>
-            <p>Os candidatos listados como "Sobra" atenderam ao mínimo de 20% do Quociente Eleitoral (${dados.limiteCandidato20} votos).</p>
-            <p>Os partidos excluídos da distribuição de sobras foram aqueles que não atingiram 80% do QE (${dados.limitePartido80} votos) ou não possuíam candidato com votação mínima exigida.</p>
-            
             <div class="rodape">
                 Documento oficial gerado pelo sistema SEU VOTO CERTO.<br>
-                Este relatório simula a aplicação das regras do Código Eleitoral Brasileiro para eleições proporcionais.
+                A distribuição das sobras respeitou a cláusula de 80% do QE para o partido e 20% do QE para o candidato, conforme Código Eleitoral Brasileiro.
             </div>
             
             <div class="assinatura">
                 <div>_________________________________<br>Responsável pela Apuração</div>
-                <div>_________________________________<br>Representante do Ministério Público Eleitoral</div>
+                <div>_________________________________<br>Representante Eleitoral</div>
             </div>
         </body>
         </html>
@@ -682,7 +638,7 @@
         const janela = window.open();
         janela.document.write(relatorioHtml);
         janela.document.close();
-        janela.print(); // Já abre a janela de impressão/PDF com o layout bonito
+        janela.print(); // Abre impressão/PDF já com layout otimizado
     }
     
     // Carregar exemplo didático (dados genéricos, sem compromisso real)
@@ -736,7 +692,6 @@
             document.getElementById('resultados').innerHTML = 'Dados inválidos. Verifique votos e cadeiras.';
             return;
         }
-        // Reaproveita o HTML bonito da área de resultados (pode ser simplificado)
         let html = `<div style="font-family: monospace;"><h3>📋 RESULTADO DA ELEIÇÃO (${dados.cadeiras} cadeiras)</h3>`;
         html += `<p><strong>🗳️ Quociente Eleitoral (QE):</strong> ${dados.QE} votos<br>`;
         html += `<strong>📏 80% QE (partido):</strong> ${dados.limitePartido80} votos &nbsp;|&nbsp; <strong>📏 20% QE (candidato):</strong> ${dados.limiteCandidato20} votos</p>`;
@@ -746,11 +701,11 @@
         for (let p of dados.partidosAptos) {
             let dir = dados.vagasDiretas[p.nome] || 0;
             let sob = dados.eleitos.filter(e => e.partido === p.nome && e.tipo === 'Sobra').length;
-            html += `<tr><td>${p.nome}</td><td>${p.total.toLocaleString()}</td><td>${dir}</td><td>${sob}</td><td>${dir+sob}</td></tr>`;
+            html += `<tr><td style="font-weight:bold">${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></tr>`;
         }
-        html += `</table><hr><h4>🏆 CANDIDATOS ELEITOS</h4><table><tr><th>Partido</th><th>Candidato</th><th>Votos</th><th>Tipo</th></tr>`;
+        html += `</table><hr><h4>🏆 CANDIDATOS ELEITOS</h4><table style="width:100%"><tr><th>Partido</th><th>Candidato</th><th>Votos</th><th>Tipo</th></tr>`;
         dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido)).forEach(e => {
-            html += `<tr><td>${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td>${e.tipo}</td></tr>`;
+            html += `<tr><td>${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td style="text-align:center">${e.tipo}</td></tr>`;
         });
         html += `</table></div>`;
         document.getElementById('resultados').innerHTML = html;
