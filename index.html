@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEU VOTO CERTO | Apuração Proporcional Profissional</title>
+    <title>SEU VOTO CERTO | Calculadora de Apuração Proporcional</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,27 +18,19 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%);
             transition: background 0.3s;
-            min-height: 100vh;
             padding: 2rem;
         }
-
-        /* Tema escuro */
         body.dark {
             background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
         }
-
-        /* Container principal */
-        .app-container {
+        .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -52,21 +44,37 @@
             border-bottom-color: rgba(255,255,255,0.05);
         }
         .logo h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
             background: linear-gradient(135deg, #0f766e, #2c7da0);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: -0.5px;
         }
         .logo p {
             font-size: 0.8rem;
             color: #4a5568;
-            margin-top: 0.25rem;
         }
         body.dark .logo p {
             color: #94a3b8;
+        }
+        .btn-home {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        body.dark .btn-home {
+            background: rgba(30,41,59,0.8);
+            border-color: rgba(255,255,255,0.1);
+            color: #e2e8f0;
         }
         .theme-toggle {
             background: rgba(255,255,255,0.6);
@@ -75,75 +83,27 @@
             border-radius: 2rem;
             padding: 0.5rem 1rem;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             font-weight: 500;
-            transition: 0.2s;
         }
         body.dark .theme-toggle {
             background: rgba(30,41,59,0.8);
             border-color: rgba(255,255,255,0.1);
             color: #e2e8f0;
         }
-        .theme-toggle:hover {
-            transform: scale(0.96);
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(4px);
-            padding: 0.5rem;
-            border-radius: 3rem;
-            width: fit-content;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        body.dark .tabs {
-            background: rgba(30,41,59,0.5);
-            border-color: rgba(255,255,255,0.05);
-        }
-        .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 0.6rem 1.5rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #1e293b;
-        }
-        body.dark .tab-btn {
-            color: #cbd5e1;
-        }
-        .tab-btn.active {
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            color: #0f766e;
-        }
-        body.dark .tab-btn.active {
-            background: #1e293b;
-            color: #2dd4bf;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        /* Cards */
         .card {
             background: white;
             border-radius: 1.5rem;
             padding: 1.75rem;
             margin-bottom: 1.75rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.01);
-            transition: all 0.2s;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
             border: 1px solid rgba(0,0,0,0.03);
         }
         body.dark .card {
             background: #1e293b;
             border-color: rgba(255,255,255,0.05);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
         }
         .card-title {
             font-size: 1.3rem;
@@ -159,10 +119,7 @@
         }
         .card-title i {
             color: #0f766e;
-            font-size: 1.4rem;
         }
-
-        /* Grid de configuração */
         .config-grid {
             display: flex;
             flex-wrap: wrap;
@@ -179,7 +136,6 @@
             font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             color: #475569;
         }
         body.dark .input-group label {
@@ -191,7 +147,6 @@
             border-radius: 0.8rem;
             padding: 0.7rem 1rem;
             font-size: 0.95rem;
-            transition: 0.2s;
             color: #0f172a;
         }
         body.dark .input-group input {
@@ -204,11 +159,6 @@
             border-color: #0f766e;
             box-shadow: 0 0 0 3px rgba(15,118,110,0.1);
         }
-        .input-group input::placeholder {
-            color: #94a3b8;
-        }
-
-        /* Botões */
         .btn {
             border: none;
             border-radius: 2rem;
@@ -218,10 +168,9 @@
             display: inline-flex;
             align-items: center;
             gap: 0.6rem;
-            transition: all 0.2s;
+            transition: 0.2s;
             background: #0f766e;
             color: white;
-            font-size: 0.85rem;
         }
         .btn-outline {
             background: transparent;
@@ -243,8 +192,20 @@
             transform: translateY(-2px);
             filter: brightness(1.05);
         }
-
-        /* Tabela */
+        .qe-info {
+            margin-top: 1rem;
+            padding: 0.7rem 1rem;
+            background: #f1f5f9;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            color: #0f766e;
+        }
+        body.dark .qe-info {
+            background: #0f172a;
+            color: #2dd4bf;
+        }
         .table-wrapper {
             overflow-x: auto;
             margin-top: 1rem;
@@ -304,24 +265,6 @@
             border-color: #334155;
             color: #f1f5f9;
         }
-
-        /* QE info */
-        .qe-info {
-            margin-top: 1rem;
-            padding: 0.7rem 1rem;
-            background: #f1f5f9;
-            border-radius: 1rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-align: center;
-            color: #0f766e;
-        }
-        body.dark .qe-info {
-            background: #0f172a;
-            color: #2dd4bf;
-        }
-
-        /* Resultados e gráfico */
         .result-stats {
             background: #f8fafc;
             border-radius: 1rem;
@@ -362,116 +305,71 @@
             text-align: center;
             margin-top: 2rem;
             padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid rgba(0,0,0,0.05);
             font-size: 0.7rem;
             color: #64748b;
         }
         body.dark .footer {
-            border-top-color: #334155;
+            border-top-color: rgba(255,255,255,0.05);
             color: #94a3b8;
         }
-        .footer-home {
-            margin-top: 1.5rem;
-            text-align: center;
-            font-size: 0.7rem;
-            color: #64748b;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 1rem;
-        }
-        body.dark .footer-home {
-            border-top-color: #334155;
-            color: #94a3b8;
-        }
-        /* Gráfico container */
         .chart-container {
-            margin: 1rem 0;
             min-height: 400px;
         }
     </style>
 </head>
 <body>
-<div class="app-container">
+<div class="container">
     <div class="header">
         <div class="logo">
             <h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1>
-            <p>Apuração proporcional profissional | Auditoria TSE</p>
+            <p>Simulador profissional de apuração proporcional</p>
         </div>
-        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Modo Escuro</button>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="home"><i class="fas fa-home"></i> Início</button>
-        <button class="tab-btn" data-tab="calculator"><i class="fas fa-calculator"></i> Calculadora</button>
-    </div>
-
-    <!-- Aba Início -->
-    <div id="homePane" class="tab-pane active">
-        <div class="card">
-            <div class="card-title"><i class="fas fa-graduation-cap"></i> Sistema proporcional brasileiro</div>
-            <p style="margin-bottom: 1rem; color: #334155;">Regras para vereadores, deputados estaduais e federais:</p>
-            <ul style="margin-left: 1.5rem; color: #475569; line-height: 1.6;">
-                <li><strong>Quociente Eleitoral (QE)</strong> = votos válidos ÷ cadeiras.</li>
-                <li><strong>Vagas diretas</strong> = parte inteira da divisão dos votos do partido pelo QE.</li>
-                <li><strong>Sobras</strong> – partido precisa de ≥80% do QE e candidato com ≥20% do QE. Distribuição pelo método das médias.</li>
-                <li><strong>Eleitos</strong> – os mais votados do partido (diretas) e, nas sobras, respeitando o mínimo individual.</li>
-            </ul>
-            <div style="margin-top: 1.5rem;">
-                <button id="irParaCalculadoraBtn" class="btn">Ir para Calculadora <i class="fas fa-arrow-right"></i></button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title"><i class="fas fa-star"></i> Funcionalidades</div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0.8rem;">
-                <div><i class="fas fa-chart-bar"></i> Gráfico de barras horizontais</div>
-                <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
-                <div><i class="fas fa-moon"></i> Tema escuro profissional</div>
-                <div><i class="fas fa-save"></i> Salvar cenário local</div>
-            </div>
-        </div>
-        <div class="footer-home">
-            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
+        <div style="display: flex; gap: 0.8rem;">
+            <a href="index.html" class="btn-home"><i class="fas fa-home"></i> Início</a>
+            <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Modo Escuro</button>
         </div>
     </div>
 
-    <!-- Aba Calculadora -->
-    <div id="calculatorPane" class="tab-pane">
-        <div class="card">
-            <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
-            <div class="config-grid">
-                <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" placeholder="Ex: 58252" value=""></div>
-                <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" placeholder="Ex: 15" value=""></div>
-                <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
-                <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
-                <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
-            </div>
-            <div id="qeInfo" class="qe-info">⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.</div>
+    <div class="card">
+        <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
+        <div class="config-grid">
+            <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" placeholder="Ex: 58252" value=""></div>
+            <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" placeholder="Ex: 15" value=""></div>
+            <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
+            <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
+            <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
         </div>
-        <div class="card">
-            <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
-            <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
-            <div class="table-wrapper">
-                <table class="partidos-table" id="partidosTable">
-                    <thead>
-                        <tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr>
-                    </thead>
-                    <tbody id="partidosTbody"></tbody>
-                </table>
-            </div>
+        <div id="qeInfo" class="qe-info">⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
+        <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
+        <div class="table-wrapper">
+            <table class="partidos-table" id="partidosTable">
+                <thead>
+                    <tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr>
+                </thead>
+                <tbody id="partidosTbody"></tbody>
+            </table>
         </div>
-        <div class="card">
-            <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
-            <div class="chart-container">
-                <canvas id="vagasChart" width="400" height="400"></canvas>
-            </div>
-            <div style="margin-top: 1rem; text-align: right;">
-                <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
-            </div>
-            <div id="resultadoStats" class="result-stats"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
+        <div class="chart-container">
+            <canvas id="vagasChart" width="400" height="400"></canvas>
         </div>
-        <div class="footer">
-            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
-            <button id="limparCacheBtn" class="btn-sm btn-outline" style="margin-top: 0.5rem;"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
+        <div style="margin-top: 1rem; text-align: right;">
+            <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
         </div>
+        <div id="resultadoStats" class="result-stats"></div>
+    </div>
+
+    <div class="footer">
+        <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
+        <button id="limparCacheBtn" class="btn-sm btn-outline" style="margin-top: 0.5rem;"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
     </div>
 </div>
 
@@ -484,16 +382,13 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
-
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
-
     function validarNome(nome) {
         return nome.trim().substring(0, 30);
     }
-
     function validarVotos(val) {
         return Math.max(0, parseInt(val) || 0);
     }
@@ -616,7 +511,7 @@
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
             inpNome.type = 'text'; inpNome.value = p.nome; inpNome.maxLength = 30;
-            inpNome.style.background = 'var(--bg-card)'; inpNome.style.border = '1px solid var(--border)'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
+            inpNome.style.background = 'var(--card-bg)'; inpNome.style.border = '1px solid var(--border)'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
             inpNome.addEventListener('change', (e) => { p.nome = validarNome(e.target.value); renderizarTabela(); atualizarResultados(); });
             tdNome.appendChild(inpNome);
             const tdTotal = document.createElement('td');
@@ -638,8 +533,8 @@
             p.candidatos.forEach((cand, cidx) => {
                 const row = document.createElement('div'); row.className = 'candidato-row';
                 row.innerHTML = `
-                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px; background:#fff; border:1px solid #e2e8f0; border-radius:2rem; padding:0.3rem 0.6rem;">
-                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px; background:#fff; border:1px solid #e2e8f0; border-radius:2rem; padding:0.3rem 0.6rem;">
+                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:2rem; padding:0.3rem 0.6rem;">
+                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:2rem; padding:0.3rem 0.6rem;">
                     <button class="btn-sm btn-outline" data-remove-cand data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
                 `;
                 container.appendChild(row);
@@ -794,16 +689,6 @@
         document.getElementById('salvarCenarioBtn').addEventListener('click', () => salvarCenario());
         document.getElementById('gerarPdfBtn').addEventListener('click', () => gerarPDF());
         document.getElementById('limparCacheBtn').addEventListener('click', () => { if(confirm("Apagar todos os cenários salvos?")){ localStorage.removeItem('seuVotoCerto_cenarios'); carregarCenarios(); renderizarTabela(); atualizarResultados(); } });
-        document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="calculator"]').click());
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabId = btn.dataset.tab;
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`${tabId}Pane`).classList.add('active');
-            });
-        });
     });
 </script>
 </body>
