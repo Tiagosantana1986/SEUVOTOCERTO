@@ -268,9 +268,11 @@
         }
         .toast.error { background: var(--danger); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .footer-links {
+        .footer {
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
             font-size: 0.7rem;
             color: var(--text-secondary);
         }
@@ -358,8 +360,9 @@
             </div>
             <div id="resultadoStats" class="result-stats"></div>
         </div>
-        <div class="footer-links">
-            <button id="limparCacheBtn" class="btn-sm btn-outline"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
+        <div class="footer">
+            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
+            <button id="limparCacheBtn" class="btn-sm btn-outline" style="margin-top: 0.5rem;"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
         </div>
     </div>
 </div>
