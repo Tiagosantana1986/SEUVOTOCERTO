@@ -59,8 +59,6 @@
         .toast.error { background: var(--danger); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { body { padding: 1rem; } .card { padding: 1rem; } }
-        /* Estilos para impressão / geração de PDF (não são usados diretamente, mas mantidos) */
-        .pdf-graph { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
@@ -127,7 +125,7 @@
                 <table class="partidos-table" id="partidosTable">
                     <thead><tr><th>Partido</th><th>Total de Votos (informado)</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
                     <tbody id="partidosTbody"></tbody>
-                </table>
+                <tr>
             </div>
         </div>
         <div class="card">
@@ -335,13 +333,11 @@
         App.partidos.forEach((p, idx) => {
             const tr = document.createElement('tr');
             tr.dataset.pidx = idx;
-            // Nome
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
             inpNome.type = 'text'; inpNome.value = p.nome; inpNome.maxLength = 30;
             inpNome.addEventListener('change', (e) => { p.nome = validarNome(e.target.value); renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
             tdNome.appendChild(inpNome);
-            // Total
             const tdTotal = document.createElement('td');
             const divTotal = document.createElement('div'); divTotal.style.display = 'flex'; divTotal.style.alignItems = 'center'; divTotal.style.gap = '0.5rem';
             const inpTotal = document.createElement('input');
@@ -354,7 +350,6 @@
                 divTotal.appendChild(warn);
             }
             tdTotal.appendChild(divTotal);
-            // Candidatos
             const tdCand = document.createElement('td');
             const container = document.createElement('div');
             p.candidatos.forEach((cand, cidx) => {
@@ -370,7 +365,6 @@
             addDiv.innerHTML = `<input type="text" id="newCandNome_${idx}" placeholder="Nome" maxlength="30"><input type="number" id="newCandVotos_${idx}" placeholder="Votos" min="0" value="0"><button class="btn-sm btn-outline" data-add-cand data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>`;
             container.appendChild(addDiv);
             tdCand.appendChild(container);
-            // Ações
             const tdAcoes = document.createElement('td');
             const btnDel = document.createElement('button'); btnDel.innerHTML = '<i class="fas fa-times-circle"></i>'; btnDel.className = 'btn-sm btn-outline'; btnDel.style.color = 'var(--danger)';
             btnDel.addEventListener('click', () => { App.partidos.splice(idx,1); renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
@@ -378,7 +372,6 @@
             tr.append(tdNome, tdTotal, tdCand, tdAcoes);
             tbody.appendChild(tr);
         });
-        // Eventos delegados
         document.querySelectorAll('[data-cand-nome]').forEach(inp => inp.addEventListener('change', (e) => {
             let pidx = parseInt(e.target.dataset.pidx), cidx = parseInt(e.target.dataset.cidx);
             if (App.partidos[pidx]?.candidatos[cidx]) App.partidos[pidx].candidatos[cidx].nome = validarNome(e.target.value);
@@ -426,7 +419,6 @@
         }
         html += `</ul>`;
         statsDiv.innerHTML = html;
-        // Gráfico
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (App.chartInstance) App.chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -536,45 +528,61 @@
         render(cB, 'compareResultB');
     }
 
-    // ==================== PDF COM GRÁFICO ====================
+    // ==================== PDF COM GRÁFICO (CORRIGIDO) ====================
     async function gerarPDF() {
         try {
-            showToast("Gerando PDF... Aguarde.", "info");
-            const canvas = document.getElementById('vagasChart');
-            if (!canvas) throw new Error("Canvas do gráfico não encontrado.");
-            // Capturar o gráfico como imagem
-            const imgData = await html2canvas(canvas, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: true
-            }).then(c => c.toDataURL('image/png'));
-
+            showToast("Preparando o relatório...", "info");
             const dados = calcularResultado(
                 App.partidos,
                 validarVotos(document.getElementById('totalVotos').value),
                 validarVotos(document.getElementById('numCadeiras').value)
             );
             if (!dados) throw new Error("Nenhum dado para gerar PDF.");
-
+            
+            // Força o gráfico a ser redesenhado e aguarda um pouco
+            if (App.chartInstance) {
+                App.chartInstance.update();
+                await new Promise(r => setTimeout(r, 200));
+            }
+            
+            const canvas = document.getElementById('vagasChart');
+            if (!canvas) throw new Error("Canvas do gráfico não encontrado.");
+            
+            // Capturar o gráfico com html2canvas (fundo branco, alta qualidade)
+            const imgData = await html2canvas(canvas, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: false,
+                allowTaint: false
+            }).then(c => c.toDataURL('image/png')).catch(err => {
+                console.warn("Erro ao capturar gráfico:", err);
+                return null;
+            });
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
-
+            
             // Cabeçalho
             doc.setFontSize(18);
             doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
             doc.setFontSize(10);
             doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
             doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
-
-            // Adicionar o gráfico (imagem)
-            const imgWidth = 90;
-            const imgHeight = (imgData.height * imgWidth) / imgData.width;
-            doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, 48, imgWidth, imgHeight);
-
-            let y = 48 + imgHeight + 10;
-
+            
+            let y = 48;
+            // Se a imagem do gráfico foi capturada, insere
+            if (imgData) {
+                const imgWidth = 90;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
+                y += imgHeight + 10;
+            } else {
+                doc.text("(Gráfico não disponível)", pageWidth/2, y, { align: "center" });
+                y += 10;
+            }
+            
             // Tabela de partidos
             doc.autoTable({
                 startY: y,
@@ -588,7 +596,7 @@
                 headStyles: { fillColor: [15,118,110] },
                 margin: { top: 10 }
             });
-
+            
             y = doc.lastAutoTable.finalY + 10;
             doc.text("Candidatos Eleitos", 14, y);
             y += 6;
@@ -599,7 +607,7 @@
                 theme: 'striped',
                 styles: { fontSize: 9 }
             });
-
+            
             // Rodapé
             doc.setFontSize(8);
             doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
@@ -617,11 +625,8 @@
         const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
         if (!nome) return;
         const pdfOk = await gerarPDF();
-        if (pdfOk) {
-            App.salvarCenarioAtual(nome, true);
-        } else {
-            showToast("Falha na geração do PDF. Cenário não salvo.", "error");
-        }
+        if (pdfOk) App.salvarCenarioAtual(nome, true);
+        else showToast("Falha na geração do PDF. Cenário não salvo.", "error");
     }
 
     // ==================== CSV ====================
@@ -673,19 +678,16 @@
 
     // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', () => {
-        // Tema
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         document.getElementById('themeToggle').addEventListener('click', () => {
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         });
-        // Dados
         App.carregar();
         renderizarTabela();
         atualizarResultados();
         atualizarListaCenarios();
         atualizarSelectComparador();
-        // Eventos
         document.getElementById('calcularBtn').addEventListener('click', () => atualizarResultados());
         document.getElementById('exemploBtn').addEventListener('click', () => {
             App.partidos = [
@@ -725,7 +727,6 @@
             if (confirm("Apagar todos os cenários?")) { localStorage.removeItem('seuVotoCerto_cenarios'); location.reload(); }
         });
         document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="calculator"]').click());
-        // Tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tabId = btn.dataset.tab;
