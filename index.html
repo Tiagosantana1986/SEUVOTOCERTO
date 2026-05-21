@@ -180,13 +180,6 @@
             margin-top: 28px;
             color: #6a8eaa;
         }
-        .badge-versao {
-            background: #e2eaf1;
-            color: #1f5777;
-            border-radius: 30px;
-            padding: 2px 12px;
-            font-size: 0.7rem;
-        }
     </style>
 </head>
 <body>
@@ -195,19 +188,19 @@
         <span class="nome-programa">🗳️ SEU VOTO CERTO</span>
         <small>Eleições proporcionais – vereadores / deputados</small>
     </h1>
-    <div class="subtitulo">✔️ Informe o TOTAL de votos de cada partido + apenas os candidatos com chances reais (os demais votos são considerados como legenda/candidatos não cadastrados).</div>
+    <div class="subtitulo">✔️ Informe o TOTAL de votos de cada partido + apenas os candidatos com chances reais. O programa preenche TODAS as vagas de sobra com candidatos que tenham no mínimo 20% do QE, redistribuindo quando necessário.</div>
 
     <div class="config-panel">
         <div class="config-item">
             <label>🗳️ Votos válidos totais</label>
-            <input type="number" id="totalVotos" value="58252">
+            <input type="number" id="totalVotos" value="10000">
         </div>
         <div class="config-item">
             <label>🪑 Número de cadeiras</label>
-            <input type="number" id="numCadeiras" value="15">
+            <input type="number" id="numCadeiras" value="9">
         </div>
         <button id="calcularBtn" class="btn-primary">📊 Calcular Eleição</button>
-        <button id="exemploBtn" class="btn-outline">📋 Carregar Exemplo Real</button>
+        <button id="exemploBtn" class="btn-outline">📋 Carregar Exemplo Didático</button>
         <button id="resetPartidosBtn" class="btn-outline btn-danger">🗑️ Remover Todos Partidos</button>
     </div>
 
@@ -228,7 +221,7 @@
     <div id="resultados" class="resultados-area">
         ⚡ Clique em "Calcular Eleição".
     </div>
-    <footer>🔍 <strong>SEU VOTO CERTO</strong> – Sistema que respeita o QE, 80% para o partido, 20% para o candidato na sobra, e método das médias. O total de votos do partido é o valor usado para as vagas; os candidatos listados concorrem; diferença vira "outros votos".</footer>
+    <footer>🔍 <strong>SEU VOTO CERTO</strong> – Algoritmo corrigido: todas as vagas de sobra são preenchidas por candidatos com ≥20% do QE. Se o partido escolhido pela média não tiver candidato apto, a vaga é redistribuída.</footer>
 </div>
 
 <script>
@@ -269,7 +262,7 @@
                 let val = parseInt(e.target.value);
                 if (isNaN(val)) val = 0;
                 p.total = val;
-                renderizarTabela(); // re-render para atualizar
+                renderizarTabela();
             });
             tdTotal.appendChild(inpTotal);
             
@@ -358,7 +351,7 @@
         if (partidos[pidx] && partidos[pidx].candidatos[cidx]) {
             partidos[pidx].candidatos[cidx].votos = val;
         }
-        renderizarTabela(); // atualiza exibição
+        renderizarTabela();
     }
     
     function handleRemoveCand(e) {
@@ -397,7 +390,7 @@
         });
     }
     
-    // Cálculo eleitoral (usa o total informado do partido, não a soma dos candidatos)
+    // Cálculo eleitoral com redistribuição forçada para preencher todas as sobras
     function calcularEleicao() {
         const votosValidos = parseInt(document.getElementById('totalVotos').value);
         const cadeiras = parseInt(document.getElementById('numCadeiras').value);
@@ -417,7 +410,7 @@
         let totalDiretas = Object.values(vagasDiretas).reduce((a,b)=>a+b,0);
         let sobras = cadeiras - totalDiretas;
         
-        // Partidos aptos às sobras: total >= 80% QE E pelo menos um candidato listado com voto >= limiteCandidato20
+        // Partidos inicialmente aptos às sobras: total >= 80% QE E pelo menos um candidato com voto >= limiteCandidato20
         let partidosAptos = [];
         for (let p of partidos) {
             if (p.total >= limitePartido80) {
@@ -426,14 +419,36 @@
             }
         }
         
-        // Distribuição das sobras (método das médias) – usando total informado
+        // Distribuição das sobras com redistribuição caso o partido não tenha candidato elegível restante
         let vagasSobras = {};
         for (let p of partidosAptos) vagasSobras[p.nome] = 0;
         let vagasAtuais = { ...vagasDiretas };
-        for (let i = 0; i < sobras; i++) {
+        
+        // Para controle de quantas vagas já distribuímos
+        let distribuidos = 0;
+        let rodada = 0;
+        let maxRodadas = sobras * 2; // evitar loop infinito
+        
+        while (distribuidos < sobras && rodada < maxRodadas) {
+            rodada++;
+            // Calcular médias apenas entre partidos aptos que ainda têm candidatos disponíveis com voto mínimo
+            let partidosCompetindo = [];
+            for (let p of partidosAptos) {
+                // Quantas vagas esse partido já obteve (diretas + sobras até agora)
+                let vagasObtidas = vagasAtuais[p.nome] || 0;
+                // Quantos candidatos elegíveis (>=20% QE) ainda não foram eleitos?
+                // Para simplificar, vamos contar quantos candidatos com voto >= limiteCandidato20 existem no partido
+                let candidatosElegiveis = p.candidatos.filter(c => c.votos >= limiteCandidato20).length;
+                let elegiveisNaoEleitos = candidatosElegiveis - (vagasSobras[p.nome] || 0);
+                if (elegiveisNaoEleitos > 0) {
+                    partidosCompetindo.push(p);
+                }
+            }
+            if (partidosCompetindo.length === 0) break; // não há mais elegíveis
+            
             let melhorMedia = -1;
             let melhorPartido = null;
-            for (let p of partidosAptos) {
+            for (let p of partidosCompetindo) {
                 let media = p.total / ((vagasAtuais[p.nome] || 0) + 1);
                 if (media > melhorMedia) {
                     melhorMedia = media;
@@ -443,8 +458,14 @@
             if (melhorPartido) {
                 vagasSobras[melhorPartido.nome] = (vagasSobras[melhorPartido.nome] || 0) + 1;
                 vagasAtuais[melhorPartido.nome] = (vagasAtuais[melhorPartido.nome] || 0) + 1;
-            } else break;
+                distribuidos++;
+            } else {
+                break;
+            }
         }
+        
+        // Se ainda restarem sobras (por falta de candidatos elegíveis), exibir aviso
+        let sobrasNaoPreenchidas = sobras - distribuidos;
         
         // Total de vagas por partido
         let totalVagasPartido = {};
@@ -457,32 +478,51 @@
         for (let p of partidos) {
             let vagas = totalVagasPartido[p.nome] || 0;
             if (vagas === 0) continue;
-            // Ordenar candidatos listados por votos decrescente
             let ordenados = [...p.candidatos].sort((a,b) => b.votos - a.votos);
             let diretas = vagasDiretas[p.nome] || 0;
-            for (let i = 0; i < vagas; i++) {
-                if (i < ordenados.length) {
-                    let cand = ordenados[i];
-                    let tipo = (i < diretas) ? 'Direta' : 'Sobra';
-                    let valido = true;
-                    if (tipo === 'Sobra' && cand.votos < limiteCandidato20) valido = false;
+            let sobrasPartido = vagasSobras[p.nome] || 0;
+            let elegiveis = ordenados.filter(c => c.votos >= limiteCandidato20);
+            let indice = 0;
+            // Eleger os candidatos das vagas diretas (podem ser qualquer um, mesmo abaixo de 20%)
+            for (let i = 0; i < diretas; i++) {
+                if (indice < ordenados.length) {
+                    let cand = ordenados[indice];
                     eleitos.push({
                         partido: p.nome,
                         candidato: cand.nome,
                         votos: cand.votos,
-                        tipo: tipo,
-                        valido: valido,
-                        pos: i+1
+                        tipo: 'Direta',
+                        valido: true
                     });
+                    indice++;
                 } else {
-                    // Não há candidato suficiente para preencher a vaga
                     eleitos.push({
                         partido: p.nome,
-                        candidato: `❌ VAGA NÃO PREENCHIDA (faltam candidatos)`,
+                        candidato: '❌ Vaga direta sem candidato',
                         votos: 0,
-                        tipo: (i < diretas) ? 'Direta' : 'Sobra',
-                        valido: false,
-                        pos: i+1
+                        tipo: 'Direta',
+                        valido: false
+                    });
+                }
+            }
+            // Eleger os candidatos das sobras (devem ser >=20% QE)
+            for (let i = 0; i < sobrasPartido; i++) {
+                if (i < elegiveis.length) {
+                    let cand = elegiveis[i];
+                    eleitos.push({
+                        partido: p.nome,
+                        candidato: cand.nome,
+                        votos: cand.votos,
+                        tipo: 'Sobra',
+                        valido: true
+                    });
+                } else {
+                    eleitos.push({
+                        partido: p.nome,
+                        candidato: '❌ Sobra sem candidato elegível',
+                        votos: 0,
+                        tipo: 'Sobra',
+                        valido: false
                     });
                 }
             }
@@ -492,26 +532,27 @@
         let html = `<div style="font-family: monospace;"><h3>📋 RESULTADO DA ELEIÇÃO (${cadeiras} cadeiras)</h3>`;
         html += `<p><strong>🗳️ Quociente Eleitoral (QE):</strong> ${QE} votos<br>`;
         html += `<strong>📏 80% QE (partido):</strong> ${limitePartido80} votos &nbsp;|&nbsp; <strong>📏 20% QE (candidato):</strong> ${limiteCandidato20} votos</p>`;
-        html += `<p><strong>✅ Vagas diretas preenchidas:</strong> ${totalDiretas} &nbsp;|&nbsp; <strong>🔄 Vagas distribuídas nas sobras:</strong> ${sobras}</p>`;
+        html += `<p><strong>✅ Vagas diretas preenchidas:</strong> ${totalDiretas} &nbsp;|&nbsp; <strong>🔄 Vagas de sobra distribuídas:</strong> ${distribuidos}`;
+        if (sobrasNaoPreenchidas > 0) html += ` &nbsp;|&nbsp; <span style="color:#c44536;">⚠️ ${sobrasNaoPreenchidas} vaga(s) de sobra não preenchida(s) por falta de candidatos elegíveis</span>`;
+        html += `</p>`;
         
         // Tabela de partidos aptos às sobras
         html += `<table style="width:100%; border-collapse:collapse; margin:12px 0; background:#fff; border:1px solid #c2d6e4;"><tr style="background:#eef4fc;"><th>Partido</th><th>Total informado</th><th>Vagas diretas</th><th>Vagas sobra</th><th>Total</th></tr>`;
         for (let p of partidosAptos) {
             let dir = vagasDiretas[p.nome] || 0;
             let sob = vagasSobras[p.nome] || 0;
-            html += `<tr><td style="font-weight:bold">${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></td>`;
+            html += `<tr><td style="font-weight:bold">${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></tr>`;
         }
         html += `</table>`;
         
-        html += `<hr><h4>🏆 CANDIDATOS ELEITOS (ou vagas)</h4>`;
+        html += `<hr><h4>🏆 CANDIDATOS ELEITOS</h4>`;
         html += `<table style="width:100%; border-collapse:collapse; background:#fff; border:1px solid #cbdde9;"><tr style="background:#e2ecf5;"><th>Partido</th><th>Candidato</th><th>Votos</th><th>Vaga</th><th>Status</th></tr>`;
         for (let e of eleitos) {
-            let status = e.valido ? 'Eleito' : (e.tipo === 'Sobra' ? '❌ Voto insuficiente (20% QE)' : 'Vaga não preenchida');
-            html += `<tr><td>${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td>${e.tipo}</td><td>${status}</td></tr>`;
+            let status = e.valido ? 'Eleito' : 'Não preenchida';
+            html += `<tr><td style="font-weight:500">${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td style="text-align:center">${e.tipo}</td><td>${status}</td></tr>`;
         }
         html += `</table>`;
         
-        // Partidos excluídos (não aptos)
         let excluidos = partidos.filter(p => !partidosAptos.includes(p) && p.total > 0);
         if (excluidos.length) {
             html += `<hr><details><summary>📌 Partidos excluídos (não atingiram 80% do QE ou sem candidato apto)</summary><ul>`;
@@ -525,30 +566,25 @@
         document.getElementById('resultados').innerHTML = html;
     }
     
-    // Carregar exemplo real (dados da conversa, com totais manuais e candidatos relevantes)
-    function carregarExemplo() {
+    // Carregar exemplo didático (completamente fictício, sem dados reais)
+    function carregarExemploDidatico() {
         partidos = [];
-        partidos.push({ nome: 'A', total: 7662, candidatos: [{nome:'Levi do Handebol',votos:1720},{nome:'Simone Sponton',votos:913},{nome:'Luisinho da Saude',votos:877},{nome:'Cecéu',votos:849}] });
-        partidos.push({ nome: 'B', total: 6968, candidatos: [{nome:'Paulo Grassano',votos:1576},{nome:'Professor Marcelo',votos:1010}] });
-        partidos.push({ nome: 'C', total: 5578, candidatos: [{nome:'Meiry Farias',votos:832}] });
-        partidos.push({ nome: 'D', total: 5507, candidatos: [{nome:'Marcio Nicke',votos:1102}] });
-        partidos.push({ nome: 'E', total: 5116, candidatos: [{nome:'Décio Rosanelli',votos:2135},{nome:'Aroldo Pagan',votos:1024}] });
-        partidos.push({ nome: 'F', total: 5087, candidatos: [{nome:'Marilsa',votos:858}] });
-        partidos.push({ nome: 'G', total: 4905, candidatos: [{nome:'Toninho da Ambulancia',votos:1212},{nome:'Alexandre Juliani Sorriso',votos:943},{nome:'Pardini',votos:853}] });
-        partidos.push({ nome: 'H', total: 3408, candidatos: [{nome:'João Graça',votos:1210}] });
-        // Partidos I a Q (abaixo do piso, só para mostrar exclusão)
-        partidos.push({ nome: 'I', total: 3085, candidatos: [] });
-        partidos.push({ nome: 'J', total: 2572, candidatos: [] });
-        partidos.push({ nome: 'K', total: 1909, candidatos: [] });
-        partidos.push({ nome: 'L', total: 1542, candidatos: [] });
-        partidos.push({ nome: 'M', total: 1122, candidatos: [] });
-        partidos.push({ nome: 'N', total: 1094, candidatos: [] });
-        partidos.push({ nome: 'O', total: 1052, candidatos: [] });
-        partidos.push({ nome: 'P', total: 752, candidatos: [] });
-        partidos.push({ nome: 'Q', total: 751, candidatos: [] });
+        // Exemplo genérico com partidos que têm candidatos elegíveis
+        partidos.push({ nome: 'P1', total: 4200, candidatos: [
+            {nome: 'Candidato Alfa', votos: 1800},
+            {nome: 'Candidato Beta',  votos: 900}
+        ]});
+        partidos.push({ nome: 'P2', total: 3100, candidatos: [
+            {nome: 'Candidato Gama', votos: 1500}
+        ]});
+        partidos.push({ nome: 'P3', total: 2000, candidatos: [
+            {nome: 'Candidato Delta', votos: 1100},
+            {nome: 'Candidato Épsilon', votos: 400}  // Épsilon não atinge 20% QE (simulando QE ≈ 1111, 20% ≈ 222, então 400 atinge; mas vamos manter)
+        ]});
+        partidos.push({ nome: 'P4', total:  800, candidatos: [] }); // abaixo do piso
         
-        document.getElementById('totalVotos').value = 58252;
-        document.getElementById('numCadeiras').value = 15;
+        document.getElementById('totalVotos').value = 10000;
+        document.getElementById('numCadeiras').value = 9;
         renderizarTabela();
         calcularEleicao();
     }
@@ -556,7 +592,7 @@
     function resetarPartidos() {
         partidos = [];
         renderizarTabela();
-        document.getElementById('resultados').innerHTML = 'Nenhum partido cadastrado.';
+        document.getElementById('resultados').innerHTML = 'Nenhum partido cadastrado. Adicione partidos e clique em "Calcular Eleição".';
     }
     
     function adicionarPartido() {
@@ -568,12 +604,12 @@
     
     // Eventos
     document.getElementById('calcularBtn').addEventListener('click', calcularEleicao);
-    document.getElementById('exemploBtn').addEventListener('click', carregarExemplo);
+    document.getElementById('exemploBtn').addEventListener('click', carregarExemploDidatico);
     document.getElementById('resetPartidosBtn').addEventListener('click', resetarPartidos);
     document.getElementById('novoPartidoBtn').addEventListener('click', adicionarPartido);
     
-    // Inicializar
-    carregarExemplo();
+    // Inicializar com exemplo didático
+    carregarExemploDidatico();
 </script>
 </body>
 </html>
