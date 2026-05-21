@@ -58,7 +58,13 @@
         .toast { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; padding: 0.8rem 1.2rem; border-radius: 2rem; z-index: 1000; animation: fadeIn 0.3s; }
         .toast.error { background: var(--danger); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 768px) { body { padding: 1rem; } .card { padding: 1rem; } }
+        .chart-container { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+        .chart-canvas { flex: 2; min-width: 250px; }
+        .chart-legend { flex: 1; min-width: 150px; background: var(--bg-card); border-radius: 1rem; padding: 0.5rem; }
+        .chart-legend ul { list-style: none; }
+        .chart-legend li { display: flex; align-items: center; margin-bottom: 0.5rem; font-size: 0.8rem; }
+        .legend-color { width: 20px; height: 20px; border-radius: 4px; margin-right: 0.5rem; }
+        @media (max-width: 768px) { body { padding: 1rem; } .card { padding: 1rem; } .chart-container { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -94,7 +100,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 0.8rem;">
                 <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV/Excel</div>
                 <div><i class="fas fa-copy"></i> Múltiplos cenários</div>
-                <div><i class="fas fa-chart-simple"></i> Gráfico com cores exclusivas + labels (partido + cadeiras)</div>
+                <div><i class="fas fa-chart-simple"></i> Gráfico com cores exclusivas + labels (partido + cadeiras) + legenda lateral</div>
                 <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico incluso</div>
                 <div><i class="fas fa-balance-scale"></i> Comparador de cenários</div>
                 <div><i class="fas fa-database"></i> Salvar localmente</div>
@@ -125,16 +131,21 @@
                 <table class="partidos-table" id="partidosTable">
                     <thead><tr><th>Partido</th><th>Total de Votos (informado)</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
                     <tbody id="partidosTbody"></tbody>
-                <tr>
+                </table>
             </div>
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-chart-pie"></i> Resultado da Apuração</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-                <div style="flex:2" id="resultadoStats"></div>
-                <div style="flex:1"><canvas id="vagasChart" width="400" height="300"></canvas></div>
+            <div class="chart-container">
+                <div class="chart-canvas">
+                    <canvas id="vagasChart" width="400" height="300"></canvas>
+                </div>
+                <div id="customLegend" class="chart-legend"></div>
             </div>
-            <div style="margin-top: 1rem; text-align: right;"><button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button></div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
+            </div>
+            <div style="margin-top: 1rem;" id="resultadoStats"></div>
         </div>
     </div>
 
@@ -398,7 +409,7 @@
         }));
     }
 
-    // ==================== ATUALIZAÇÃO DOS RESULTADOS E GRÁFICO ====================
+    // ==================== ATUALIZAÇÃO DOS RESULTADOS, GRÁFICO E LEGENDA PERSONALIZADA ====================
     function atualizarResultados() {
         const votosValidos = validarVotos(document.getElementById('totalVotos').value);
         const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
@@ -407,6 +418,7 @@
         if (!dados || !App.partidos.length) {
             statsDiv.innerHTML = '<p>Nenhum partido cadastrado.</p>';
             if (App.chartInstance) { App.chartInstance.destroy(); App.chartInstance = null; }
+            document.getElementById('customLegend').innerHTML = '';
             return;
         }
         let html = `<div><strong>Quociente Eleitoral:</strong> ${dados.QE} votos</div>
@@ -419,6 +431,8 @@
         }
         html += `</ul>`;
         statsDiv.innerHTML = html;
+
+        // Gráfico e legenda
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (App.chartInstance) App.chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -435,7 +449,7 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                        legend: { position: 'bottom' },
+                        legend: { display: false }, // desativa legenda padrão
                         tooltip: { callbacks: { label: (item) => `${item.label}: ${item.raw} cadeira(s)` } },
                         datalabels: plugins.length ? {
                             formatter: (value, context) => `${context.chart.data.labels[context.dataIndex]} ${value}`,
@@ -445,7 +459,22 @@
                 },
                 plugins
             });
-        } else { ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height); }
+            // Criar legenda personalizada ao lado (vertical)
+            const legendDiv = document.getElementById('customLegend');
+            legendDiv.innerHTML = '<ul style="list-style: none; padding: 0; margin: 0;">';
+            for (let i = 0; i < labels.length; i++) {
+                legendDiv.innerHTML += `
+                    <li style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background-color: ${cores[i]}; border-radius: 4px; margin-right: 8px;"></span>
+                        <span>${labels[i]} (${valores[i]} cadeira${valores[i] !== 1 ? 's' : ''})</span>
+                    </li>
+                `;
+            }
+            legendDiv.innerHTML += '</ul>';
+        } else {
+            document.getElementById('customLegend').innerHTML = '';
+            ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+        }
     }
 
     // ==================== CENÁRIOS ====================
@@ -528,7 +557,7 @@
         render(cB, 'compareResultB');
     }
 
-    // ==================== PDF COM GRÁFICO (CORRIGIDO) ====================
+    // ==================== PDF COM GRÁFICO ====================
     async function gerarPDF() {
         try {
             showToast("Preparando o relatório...", "info");
@@ -539,16 +568,13 @@
             );
             if (!dados) throw new Error("Nenhum dado para gerar PDF.");
             
-            // Força o gráfico a ser redesenhado e aguarda um pouco
             if (App.chartInstance) {
                 App.chartInstance.update();
                 await new Promise(r => setTimeout(r, 200));
             }
-            
             const canvas = document.getElementById('vagasChart');
             if (!canvas) throw new Error("Canvas do gráfico não encontrado.");
             
-            // Capturar o gráfico com html2canvas (fundo branco, alta qualidade)
             const imgData = await html2canvas(canvas, {
                 scale: 2,
                 backgroundColor: '#ffffff',
@@ -564,7 +590,6 @@
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
             
-            // Cabeçalho
             doc.setFontSize(18);
             doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
             doc.setFontSize(10);
@@ -572,7 +597,6 @@
             doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
             
             let y = 48;
-            // Se a imagem do gráfico foi capturada, insere
             if (imgData) {
                 const imgWidth = 90;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -583,7 +607,6 @@
                 y += 10;
             }
             
-            // Tabela de partidos
             doc.autoTable({
                 startY: y,
                 head: [['Partido','Total Votos','Diretas','Sobras','Total']],
@@ -608,7 +631,6 @@
                 styles: { fontSize: 9 }
             });
             
-            // Rodapé
             doc.setFontSize(8);
             doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
             doc.save("relatorio_seu_voto_certo.pdf");
