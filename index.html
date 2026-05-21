@@ -142,6 +142,16 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 2px var(--accent-light);
         }
+        .qe-info {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--accent-light);
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--accent);
+            text-align: center;
+        }
         .btn {
             border: none;
             border-radius: 2rem;
@@ -196,9 +206,6 @@
             gap: 0.5rem;
             margin-top: 0.5rem;
             flex-wrap: wrap;
-        }
-        .chart-container {
-            margin: 1rem 0;
         }
         .result-stats {
             background: var(--bg-page);
@@ -304,13 +311,14 @@
                 <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
                 <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
             </div>
+            <div id="qeInfo" class="qe-info"></div>
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
             <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
             <div class="table-wrapper">
                 <table class="partidos-table" id="partidosTable">
-                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr></thead>
+                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></td></thead>
                     <tbody id="partidosTbody"></tbody>
                 </table>
             </div>
@@ -535,8 +543,20 @@
         }));
     }
 
-    // ==================== RESULTADOS E GRÁFICO DE COLUNAS ====================
+    // ==================== ATUALIZAÇÃO DO QE E RESULTADOS ====================
+    function atualizarQE() {
+        const votosValidos = validarVotos(document.getElementById('totalVotos').value);
+        const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
+        if (cadeiras === 0) {
+            document.getElementById('qeInfo').innerHTML = '⚠️ Número de cadeiras deve ser maior que zero.';
+            return;
+        }
+        const QE = Math.floor(votosValidos / cadeiras);
+        document.getElementById('qeInfo').innerHTML = `📊 Quociente Eleitoral (QE): <strong>${QE} votos</strong> (${votosValidos.toLocaleString()} votos ÷ ${cadeiras} cadeiras)`;
+    }
+
     function atualizarResultados() {
+        atualizarQE();
         const votosValidos = validarVotos(document.getElementById('totalVotos').value);
         const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
         const dados = calcularResultado(partidos, votosValidos, cadeiras);
@@ -557,7 +577,7 @@
         html += `</ul>`;
         statsDiv.innerHTML = html;
 
-        // Gráfico de colunas (vertical bar chart)
+        // Gráfico de colunas
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -651,6 +671,17 @@
         carregarCenarios();
         renderizarTabela();
         atualizarResultados();
+        
+        // Adiciona eventos automáticos para recalcular QE ao digitar
+        const totalVotosInput = document.getElementById('totalVotos');
+        const numCadeirasInput = document.getElementById('numCadeiras');
+        totalVotosInput.addEventListener('input', () => {
+            atualizarResultados();
+        });
+        numCadeirasInput.addEventListener('input', () => {
+            atualizarResultados();
+        });
+        
         document.getElementById('calcularBtn').addEventListener('click', atualizarResultados);
         document.getElementById('resetPartidosBtn').addEventListener('click', () => { partidos = []; renderizarTabela(); atualizarResultados(); });
         document.getElementById('novoPartidoBtn').addEventListener('click', () => { let nome = prompt('Nome do partido:'); if (nome) partidos.push({ nome: validarNome(nome).toUpperCase(), total: 0, candidatos: [] }); renderizarTabela(); atualizarResultados(); });
