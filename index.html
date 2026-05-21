@@ -105,6 +105,18 @@
 
 <script>
     let partidos = [];
+    let chartInstance = null;
+
+    function limparGrafico() {
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
+        const ctx = document.getElementById('vagasChart').getContext('2d');
+        // Limpa o canvas completamente
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        // Opcional: escrever uma mensagem no canvas? Melhor deixar vazio.
+    }
 
     function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
     function atualizarTotaisPartidos() { for (let p of partidos) { p.total = p.candidatos.reduce((s,c)=>s+c.votos,0); } }
@@ -187,6 +199,7 @@
 
     // Cálculo completo (retorna todos os dados)
     function calcularResultado() {
+        if (partidos.length === 0) return null; // sem partidos
         const votosValidos = parseInt(document.getElementById('totalVotos').value);
         const cadeiras = parseInt(document.getElementById('numCadeiras').value);
         if (isNaN(votosValidos) || votosValidos <= 0 || isNaN(cadeiras) || cadeiras <= 0) return null;
@@ -194,13 +207,11 @@
         const limitePartido80 = Math.floor(0.8 * QE) + 1;
         const limiteCandidato20 = Math.floor(0.2 * QE) + 1;
         
-        // vagas diretas
         let vagasDiretas = {};
         for (let p of partidos) vagasDiretas[p.nome] = Math.floor(p.total / QE);
         let totalDiretas = Object.values(vagasDiretas).reduce((a,b)=>a+b,0);
         let sobrasRestantes = cadeiras - totalDiretas;
         
-        // partidos aptos às sobras
         let partidosAptos = [];
         for (let p of partidos) {
             if (p.total >= limitePartido80 && p.candidatos.some(c => c.votos >= limiteCandidato20))
@@ -237,7 +248,6 @@
             if (elegiveis.length) eleger(melhorPartido.nome, elegiveis[0].nome, elegiveis[0].votos, 'Sobra');
         }
         
-        // Para cada partido, calcular total de vagas (direta + sobra)
         let vagasPorPartido = {};
         for (let p of partidos) {
             let dir = vagasDiretas[p.nome] || 0;
@@ -249,10 +259,13 @@
                  sobrasNaoPreenchidas: sobrasRestantes, votosValidos, cadeiras, partidos, vagasDiretas, eleitos, vagasPorPartido };
     }
 
-    let chartInstance = null;
     function atualizarResultados() {
         const dados = calcularResultado();
-        if (!dados || dados.partidos.length === 0) { document.getElementById('resultadoStats').innerHTML = '<p>Nenhum partido cadastrado.</p>'; return; }
+        if (!dados || dados.partidos.length === 0) {
+            document.getElementById('resultadoStats').innerHTML = '<p>Nenhum partido cadastrado. Adicione partidos e candidatos.</p>';
+            limparGrafico();
+            return;
+        }
         
         // Estatísticas e lista de eleitos
         let statsHtml = `<div><strong>Quociente Eleitoral:</strong> ${dados.QE} votos</div>
@@ -266,12 +279,17 @@
         statsHtml += `</ul>`;
         document.getElementById('resultadoStats').innerHTML = statsHtml;
         
-        // Gráfico: todos os partidos que têm pelo menos 1 voto total (ou que tenham vagas)
+        // Gráfico: todos os partidos que têm pelo menos 1 voto total
         let partidosComVagas = dados.partidos.filter(p => p.total > 0);
         let labels = partidosComVagas.map(p => p.nome);
         let valores = partidosComVagas.map(p => dados.vagasPorPartido[p.nome]?.total || 0);
+        
         if (chartInstance) chartInstance.destroy();
         const ctx = document.getElementById('vagasChart').getContext('2d');
+        if (labels.length === 0) {
+            limparGrafico();
+            return;
+        }
         chartInstance = new Chart(ctx, {
             type: 'pie',
             data: { labels, datasets: [{ data: valores, backgroundColor: ['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec489a'] }] },
@@ -282,7 +300,7 @@
     // Relatório completo (todos os partidos)
     function gerarRelatorio() {
         const dados = calcularResultado();
-        if (!dados) { alert('Nenhum dado para gerar relatório.'); return; }
+        if (!dados) { alert('Nenhum dado para gerar relatório. Cadastre partidos.'); return; }
         const dataAtual = new Date().toLocaleString('pt-BR');
         let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório SEU VOTO CERTO</title><style>
             body { font-family: 'Times New Roman', serif; margin: 1.5cm; font-size: 11pt; }
@@ -296,12 +314,12 @@
         <p>Gerado em: ${dataAtual}</p>
         <p><strong>Votos válidos:</strong> ${dados.votosValidos.toLocaleString()} | <strong>Cadeiras:</strong> ${dados.cadeiras} | <strong>QE:</strong> ${dados.QE}</p>
         <h2>Distribuição de Vagas por Partido</h2>
-        <table><thead><tr><th>Partido</th><th>Total de Votos</th><th>Vagas Diretas</th><th>Vagas Sobra</th><th>Total de Vagas</th></tr></thead><tbody>`;
+        <table><thead><tr><th>Partido</th><th>Total de Votos</th><th>Vagas Diretas</th><th>Vagas Sobra</th><th>Total de Vagas</th></thead><tbody>`;
         for (let p of dados.partidos) {
             let vagas = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
             html += `<tr><td>${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td>
                     <td style="text-align:center">${vagas.diretas}</td><td style="text-align:center">${vagas.sobras}</td>
-                    <td style="text-align:center"><b>${vagas.total}</b></td></tr>`;
+                    <td style="text-align:center"><b>${vagas.total}</b></td>`;
         }
         html += `</tbody></table>
         <h2>Candidatos Eleitos</h2>
@@ -334,7 +352,7 @@
         renderizarTabela();
         calcularEleicao();
     }
-    function resetarPartidos() { partidos = []; renderizarTabela(); calcularEleicao(); }
+    function resetarPartidos() { partidos = []; renderizarTabela(); calcularEleicao(); } // Agora o gráfico ficará vazio
     function adicionarPartido() { let nome = prompt('Nome do partido:'); if(nome) partidos.push({ nome: nome.toUpperCase().substring(0,8), total: 0, candidatos: [] }); renderizarTabela(); calcularEleicao(); }
     function calcularEleicao() { atualizarTotaisPartidos(); atualizarResultados(); }
 
