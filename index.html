@@ -144,7 +144,7 @@
         }
         .input-group input::placeholder {
             color: var(--text-secondary);
-            opacity: 0.5;
+            opacity: 0.6;
         }
         .qe-info {
             margin-top: 1rem;
@@ -379,29 +379,39 @@
                 cenarios = JSON.parse(stored);
             } catch(e) { cenarios = []; }
         }
-        if (!cenarios.length) {
-            cenarios.push({ nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: null, numCadeiras: null });
-            localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(cenarios));
+        // Se houver cenários, carregamos apenas os partidos do último cenário, mas NÃO carregamos os parâmetros de votos/cadeiras
+        if (cenarios.length > 0) {
+            const ultimo = cenarios[cenarios.length-1];
+            if (ultimo.partidos) {
+                partidos = ultimo.partidos.map(p => ({
+                    nome: p.nome,
+                    total: p.total,
+                    candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos }))
+                }));
+            }
         }
-        const ultimo = cenarios[cenarios.length-1];
-        partidos = ultimo.partidos.map(p => ({
-            nome: p.nome,
-            total: p.total,
-            candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos }))
-        }));
-        if (ultimo.totalVotos) document.getElementById('totalVotos').value = ultimo.totalVotos;
-        if (ultimo.numCadeiras) document.getElementById('numCadeiras').value = ultimo.numCadeiras;
+        // Garantir que os campos de entrada estejam VAZIOS
+        document.getElementById('totalVotos').value = '';
+        document.getElementById('numCadeiras').value = '';
+        // Atualizar a mensagem de QE
+        document.getElementById('qeInfo').innerHTML = '⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.';
     }
 
     function salvarCenario() {
         const nome = prompt("Nome do cenário:", `Cenário ${cenarios.length+1}`);
         if (!nome) return;
+        const totalVotos = validarVotos(document.getElementById('totalVotos').value);
+        const numCadeiras = validarVotos(document.getElementById('numCadeiras').value);
+        if (totalVotos === 0 || numCadeiras === 0) {
+            showToast('Preencha os votos válidos e o número de cadeiras antes de salvar.', 'error');
+            return;
+        }
         cenarios.push({
             nome: nome,
             data: new Date().toISOString(),
             partidos: partidos.map(p => ({ nome: p.nome, total: p.total, candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos })) })),
-            totalVotos: validarVotos(document.getElementById('totalVotos').value) || null,
-            numCadeiras: validarVotos(document.getElementById('numCadeiras').value) || null
+            totalVotos: totalVotos,
+            numCadeiras: numCadeiras
         });
         localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(cenarios));
         showToast(`Cenário "${nome}" salvo!`);
