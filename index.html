@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEU VOTO CERTO – Sistema Premium de Apuração Proporcional</title>
+    <title>SEU VOTO CERTO – Apuração Proporcional Profissional</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -14,67 +14,297 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); transition: background 0.3s; padding: 1.5rem; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+            transition: background 0.3s, color 0.2s;
+            padding: 2rem;
+        }
+        /* Tema Claro (padrão) */
         :root {
-            --bg-body: #f0f4f8; --bg-card: #ffffff; --text-primary: #1a2c3e; --text-secondary: #2c3e50;
-            --border: #e2e8f0; --accent: #0f766e; --accent-light: #ccfbf1; --danger: #dc2626; --warning: #f59e0b;
-            --shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            --bg-page: #f5f7fb;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --accent: #0f766e;
+            --accent-light: #ccfbf1;
+            --accent-hover: #0d5c56;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
+            --table-hover: #f8fafc;
         }
         body.dark {
-            --bg-body: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-secondary: #cbd5e1;
-            --border: #334155; --accent: #2dd4bf; --accent-light: #134e4a;
+            --bg-page: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --accent: #2dd4bf;
+            --accent-light: #134e4a;
+            --table-hover: #2d3a4f;
         }
-        .container { max-width: 1600px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
-        .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #2c7da0); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-        .tab-btn { background: transparent; border: none; padding: 0.6rem 1.2rem; border-radius: 2rem; cursor: pointer; font-weight: 500; color: var(--text-secondary); transition: 0.2s; }
-        .tab-btn.active { background: var(--accent); color: white; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f766e, #2c7da0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .logo p { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem; }
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(15,118,110,0.3);
+        }
         .tab-pane { display: none; animation: fade 0.2s; }
         .tab-pane.active { display: block; }
         @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: var(--bg-card); border-radius: 1.5rem; box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-        .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
-        .config-grid { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
-        .input-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 150px; }
-        .input-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
-        .input-group input, .input-group select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.8rem; padding: 0.5rem 0.8rem; color: var(--text-primary); }
-        .btn { border: none; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: 0.2s; background: var(--accent); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 0.75rem;
+            color: var(--text-primary);
+        }
+        /* Formulário */
+        .config-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            min-width: 160px;
+        }
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-group input, .input-group select {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.8rem;
+            padding: 0.6rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-light);
+        }
+        /* Botões */
+        .btn {
+            border: none;
+            border-radius: 2rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            background: var(--accent);
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
         .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
         .btn-danger { background: var(--danger); }
-        .table-wrapper { overflow-x: auto; border-radius: 1rem; }
-        .partidos-table { width: 100%; border-collapse: collapse; }
-        .partidos-table th, .partidos-table td { border-bottom: 1px solid var(--border); padding: 0.8rem 0.5rem; text-align: left; vertical-align: top; }
-        .candidato-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 0.4rem; background: var(--bg-body); padding: 0.3rem; border-radius: 1rem; }
-        .add-cand-form { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
-        .result-stats { background: var(--bg-card); border-radius: 1rem; padding: 1rem; }
-        .scenario-list { display: flex; flex-direction: column; gap: 0.8rem; max-height: 400px; overflow-y: auto; }
-        .scenario-item { background: var(--bg-body); padding: 0.8rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .comparador { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .comparador-col { flex: 1; min-width: 280px; }
-        hr { margin: 1rem 0; border-color: var(--border); }
-        .warning-icon { color: var(--warning); margin-left: 0.5rem; cursor: help; }
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; padding: 0.8rem 1.2rem; border-radius: 2rem; z-index: 1000; animation: fadeIn 0.3s; }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        /* Tabelas */
+        .table-wrapper { overflow-x: auto; border-radius: 1rem; margin-top: 1rem; }
+        .partidos-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .partidos-table th, .partidos-table td {
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 0.5rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        .partidos-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .partidos-table tr:hover { background: var(--table-hover); }
+        .candidato-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            background: var(--bg-page);
+            padding: 0.4rem;
+            border-radius: 1rem;
+        }
+        .add-cand-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        /* Gráfico e legenda */
+        .chart-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .chart-canvas {
+            flex: 2;
+            min-width: 280px;
+            max-width: 450px;
+        }
+        .chart-legend {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-page);
+            border-radius: 1rem;
+            padding: 1rem;
+        }
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .legend-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .legend-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.6rem;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            margin-right: 0.6rem;
+        }
+        /* Resultados */
+        .result-stats {
+            background: var(--bg-page);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+        .badge {
+            background: var(--accent-light);
+            padding: 0.2rem 0.6rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            color: var(--accent);
+        }
+        .scenario-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .scenario-item {
+            background: var(--bg-page);
+            padding: 0.8rem;
+            border-radius: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 2rem;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
         .toast.error { background: var(--danger); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .chart-container { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
-        .chart-canvas { flex: 2; min-width: 250px; }
-        .chart-legend { flex: 1; min-width: 150px; background: var(--bg-card); border-radius: 1rem; padding: 0.5rem; }
-        .chart-legend ul { list-style: none; }
-        .chart-legend li { display: flex; align-items: center; margin-bottom: 0.5rem; font-size: 0.8rem; }
-        .legend-color { width: 20px; height: 20px; border-radius: 4px; margin-right: 0.5rem; }
-        @media (max-width: 768px) { body { padding: 1rem; } .card { padding: 1rem; } .chart-container { flex-direction: column; } }
+        @media (max-width: 768px) { body { padding: 1rem; } .chart-wrapper { flex-direction: column; align-items: center; } }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <div class="logo"><h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1><p>Sistema Premium de Apuração Proporcional</p></div>
+        <div class="logo">
+            <h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1>
+            <p>Sistema profissional de apuração proporcional</p>
+        </div>
         <button id="themeToggle" class="btn-outline btn-sm"><i class="fas fa-moon"></i> Modo Escuro</button>
     </div>
 
-    <div class="tabs" id="tabs">
+    <div class="tabs">
         <button class="tab-btn active" data-tab="home"><i class="fas fa-home"></i> Início</button>
         <button class="tab-btn" data-tab="calculator"><i class="fas fa-calculator"></i> Calculadora</button>
         <button class="tab-btn" data-tab="scenarios"><i class="fas fa-folder-open"></i> Cenários</button>
@@ -82,12 +312,12 @@
         <button class="tab-btn" data-tab="settings"><i class="fas fa-cog"></i> Configurações</button>
     </div>
 
-    <!-- Aba Início -->
+    <!-- Aba Início (resumida por brevidade, mas funcional) -->
     <div id="homePane" class="tab-pane active">
         <div class="card">
             <div class="card-title"><i class="fas fa-graduation-cap"></i> Como funciona o sistema proporcional brasileiro</div>
             <p>O sistema de lista aberta é usado para vereadores, deputados estaduais e federais. As regras:</p>
-            <ul style="margin: 1rem 0 0 1.5rem;">
+            <ul style="margin: 1rem 0 0 1.5rem; color: var(--text-secondary);">
                 <li><strong>Quociente Eleitoral (QE)</strong> = votos válidos ÷ cadeiras.</li>
                 <li><strong>Vagas diretas</strong> = parte inteira da divisão dos votos do partido pelo QE.</li>
                 <li><strong>Sobras</strong> – partido precisa de ≥80% do QE e candidato com ≥20% do QE. Distribuição pelo método das médias.</li>
@@ -97,13 +327,13 @@
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-star"></i> Funcionalidades Premium</div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 0.8rem;">
-                <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV/Excel</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0.8rem;">
+                <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV</div>
                 <div><i class="fas fa-copy"></i> Múltiplos cenários</div>
-                <div><i class="fas fa-chart-simple"></i> Gráfico com cores exclusivas + labels (partido + cadeiras) + legenda lateral</div>
-                <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico incluso</div>
+                <div><i class="fas fa-chart-pie"></i> Gráfico com legenda lateral</div>
+                <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
                 <div><i class="fas fa-balance-scale"></i> Comparador de cenários</div>
-                <div><i class="fas fa-database"></i> Salvar localmente</div>
+                <div><i class="fas fa-moon"></i> Tema escuro</div>
             </div>
         </div>
     </div>
@@ -113,47 +343,45 @@
         <div class="card">
             <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
             <div class="config-grid">
-                <div class="input-group"><label>🗳️ Votos válidos totais</label><input type="number" id="totalVotos" value="10000"></div>
-                <div class="input-group"><label>🪑 Número de cadeiras</label><input type="number" id="numCadeiras" value="9"></div>
+                <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" value="10000"></div>
+                <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" value="9"></div>
                 <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
-                <button id="exemploBtn" class="btn-outline btn"><i class="fas fa-database"></i> Exemplo Didático</button>
-                <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar Tudo</button>
-                <button id="salvarCenarioComPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Cenário (com PDF)</button>
-                <button id="salvarCenarioSemPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Apenas Cenário</button>
+                <button id="exemploBtn" class="btn-outline btn"><i class="fas fa-database"></i> Exemplo</button>
+                <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
+                <button id="salvarCenarioComPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar + PDF</button>
+                <button id="salvarCenarioSemPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar só cenário</button>
                 <button id="importarCSVBtn" class="btn-outline btn"><i class="fas fa-upload"></i> Importar CSV</button>
                 <button id="exportarCSVBtn" class="btn-outline btn"><i class="fas fa-download"></i> Exportar CSV</button>
             </div>
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
-            <div style="margin-bottom: 1rem;"><button id="novoPartidoBtn" class="btn-sm btn-outline"><i class="fas fa-plus"></i> Adicionar Partido</button></div>
+            <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
             <div class="table-wrapper">
                 <table class="partidos-table" id="partidosTable">
-                    <thead><tr><th>Partido</th><th>Total de Votos (informado)</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
+                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
                     <tbody id="partidosTbody"></tbody>
                 </table>
             </div>
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-chart-pie"></i> Resultado da Apuração</div>
-            <div class="chart-container">
-                <div class="chart-canvas">
-                    <canvas id="vagasChart" width="400" height="300"></canvas>
-                </div>
+            <div class="chart-wrapper">
+                <div class="chart-canvas"><canvas id="vagasChart" width="400" height="300"></canvas></div>
                 <div id="customLegend" class="chart-legend"></div>
             </div>
-            <div style="margin-top: 1rem; text-align: right;">
+            <div style="margin-top: 1.5rem; text-align: right;">
                 <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
             </div>
-            <div style="margin-top: 1rem;" id="resultadoStats"></div>
+            <div id="resultadoStats" class="result-stats"></div>
         </div>
     </div>
 
-    <!-- Aba Cenários -->
+    <!-- Aba Cenários (resumida, mas funcional) -->
     <div id="scenariosPane" class="tab-pane">
         <div class="card">
             <div class="card-title"><i class="fas fa-folder-open"></i> Gerenciar Cenários</div>
-            <div style="margin-bottom: 1rem;"><button id="novoCenarioBtn" class="btn-sm btn-outline"><i class="fas fa-plus"></i> Novo Cenário</button></div>
+            <button id="novoCenarioBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Novo Cenário</button>
             <div id="scenarioList" class="scenario-list"></div>
         </div>
     </div>
@@ -162,17 +390,9 @@
     <div id="comparePane" class="tab-pane">
         <div class="card">
             <div class="card-title"><i class="fas fa-balance-scale"></i> Comparar dois cenários</div>
-            <div class="comparador">
-                <div class="comparador-col">
-                    <label>Cenário A</label>
-                    <select id="compareA" class="form-control"></select>
-                    <div id="compareResultA"></div>
-                </div>
-                <div class="comparador-col">
-                    <label>Cenário B</label>
-                    <select id="compareB" class="form-control"></select>
-                    <div id="compareResultB"></div>
-                </div>
+            <div class="comparador" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex:1"><label>Cenário A</label><select id="compareA" class="form-control" style="width:100%"></select><div id="compareResultA"></div></div>
+                <div style="flex:1"><label>Cenário B</label><select id="compareB" class="form-control" style="width:100%"></select><div id="compareResultB"></div></div>
             </div>
         </div>
     </div>
@@ -183,7 +403,6 @@
             <div class="card-title"><i class="fas fa-cog"></i> Preferências</div>
             <div class="config-grid">
                 <div class="input-group"><label>Idioma</label><select id="idioma"><option value="pt">Português</option><option value="en">English</option></select></div>
-                <div class="input-group"><label>Unidade de votos</label><select id="unidade"><option value="unidade">Absoluto</option><option value="milhar">Milhares</option></select></div>
                 <button id="limparCacheBtn" class="btn-outline btn">Limpar todos os cenários</button>
             </div>
         </div>
@@ -347,17 +566,19 @@
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
             inpNome.type = 'text'; inpNome.value = p.nome; inpNome.maxLength = 30;
+            inpNome.style.background = 'var(--card-bg)'; inpNome.style.border = '1px solid var(--border)'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
             inpNome.addEventListener('change', (e) => { p.nome = validarNome(e.target.value); renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
             tdNome.appendChild(inpNome);
             const tdTotal = document.createElement('td');
             const divTotal = document.createElement('div'); divTotal.style.display = 'flex'; divTotal.style.alignItems = 'center'; divTotal.style.gap = '0.5rem';
             const inpTotal = document.createElement('input');
             inpTotal.type = 'number'; inpTotal.value = p.total; inpTotal.min = 0;
+            inpTotal.style.background = 'var(--card-bg)'; inpTotal.style.border = '1px solid var(--border)'; inpTotal.style.borderRadius = '0.8rem'; inpTotal.style.padding = '0.4rem 0.6rem'; inpTotal.style.width = '100px';
             inpTotal.addEventListener('change', (e) => { p.total = validarVotos(e.target.value); renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
             divTotal.appendChild(inpTotal);
             const somaCand = p.candidatos.reduce((s,c)=>s+c.votos,0);
             if (somaCand > p.total) {
-                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle warning-icon'; warn.title = `A soma dos candidatos (${somaCand}) excede o total informado (${p.total}). O cálculo usa o total informado.`;
+                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle warning-icon'; warn.style.color = 'var(--warning)'; warn.style.marginLeft = '0.5rem'; warn.title = `Soma dos candidatos (${somaCand}) excede o total informado (${p.total}).`;
                 divTotal.appendChild(warn);
             }
             tdTotal.appendChild(divTotal);
@@ -366,14 +587,14 @@
             p.candidatos.forEach((cand, cidx) => {
                 const row = document.createElement('div'); row.className = 'candidato-row';
                 row.innerHTML = `
-                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px;">
-                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px;">
+                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px; background:var(--card-bg); border:1px solid var(--border); border-radius:0.8rem; padding:0.3rem 0.6rem;">
+                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px; background:var(--card-bg); border:1px solid var(--border); border-radius:0.8rem; padding:0.3rem 0.6rem;">
                     <button class="btn-sm btn-outline" data-remove-cand data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
                 `;
                 container.appendChild(row);
             });
             const addDiv = document.createElement('div'); addDiv.className = 'add-cand-form';
-            addDiv.innerHTML = `<input type="text" id="newCandNome_${idx}" placeholder="Nome" maxlength="30"><input type="number" id="newCandVotos_${idx}" placeholder="Votos" min="0" value="0"><button class="btn-sm btn-outline" data-add-cand data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>`;
+            addDiv.innerHTML = `<input type="text" id="newCandNome_${idx}" placeholder="Nome" maxlength="30" style="flex:1;"><input type="number" id="newCandVotos_${idx}" placeholder="Votos" min="0" value="0" style="width:100px;"><button class="btn-sm btn-outline" data-add-cand data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>`;
             container.appendChild(addDiv);
             tdCand.appendChild(container);
             const tdAcoes = document.createElement('td');
@@ -409,18 +630,19 @@
         }));
     }
 
-    // ==================== ATUALIZAÇÃO DOS RESULTADOS, GRÁFICO E LEGENDA PERSONALIZADA ====================
+    // ==================== RESULTADOS E GRÁFICO ====================
     function atualizarResultados() {
         const votosValidos = validarVotos(document.getElementById('totalVotos').value);
         const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
         const dados = calcularResultado(App.partidos, votosValidos, cadeiras);
         const statsDiv = document.getElementById('resultadoStats');
         if (!dados || !App.partidos.length) {
-            statsDiv.innerHTML = '<p>Nenhum partido cadastrado.</p>';
-            if (App.chartInstance) { App.chartInstance.destroy(); App.chartInstance = null; }
+            statsDiv.innerHTML = '<p>Nenhum partido cadastrado. Adicione partidos e candidatos.</p>';
+            if (App.chartInstance) App.chartInstance.destroy();
             document.getElementById('customLegend').innerHTML = '';
             return;
         }
+        // Estatísticas
         let html = `<div><strong>Quociente Eleitoral:</strong> ${dados.QE} votos</div>
                     <div><strong>80% QE (partido):</strong> ${dados.limitePartido80} | <strong>20% QE (candidato):</strong> ${dados.limiteCandidato20}</div>
                     <div><strong>Vagas diretas:</strong> ${dados.totalDiretas} | <strong>Sobras distribuídas:</strong> ${dados.sobrasDistribuidas}</div>`;
@@ -431,8 +653,7 @@
         }
         html += `</ul>`;
         statsDiv.innerHTML = html;
-
-        // Gráfico e legenda
+        // Gráfico
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (App.chartInstance) App.chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -440,8 +661,7 @@
         const valores = partidosComVagas.map(p => dados.vagasPorPartido[p.nome]?.total || 0);
         const cores = partidosComVagas.map((_, i) => App.getCor(i));
         if (labels.length) {
-            const plugins = [];
-            if (typeof ChartDataLabels !== 'undefined') plugins.push(ChartDataLabels);
+            const plugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
             App.chartInstance = new Chart(ctx, {
                 type: 'pie',
                 data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
@@ -449,7 +669,7 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: false }, // desativa legenda padrão
+                        legend: { display: false },
                         tooltip: { callbacks: { label: (item) => `${item.label}: ${item.raw} cadeira(s)` } },
                         datalabels: plugins.length ? {
                             formatter: (value, context) => `${context.chart.data.labels[context.dataIndex]} ${value}`,
@@ -459,18 +679,18 @@
                 },
                 plugins
             });
-            // Criar legenda personalizada ao lado (vertical)
+            // Legenda personalizada
             const legendDiv = document.getElementById('customLegend');
-            legendDiv.innerHTML = '<ul style="list-style: none; padding: 0; margin: 0;">';
+            legendDiv.innerHTML = `<div class="legend-title">Distribuição de Vagas</div><ul class="legend-list">`;
             for (let i = 0; i < labels.length; i++) {
                 legendDiv.innerHTML += `
-                    <li style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <span style="display: inline-block; width: 20px; height: 20px; background-color: ${cores[i]}; border-radius: 4px; margin-right: 8px;"></span>
-                        <span>${labels[i]} (${valores[i]} cadeira${valores[i] !== 1 ? 's' : ''})</span>
+                    <li>
+                        <span class="legend-color" style="background-color: ${cores[i]};"></span>
+                        <span>${labels[i]} – <strong>${valores[i]}</strong> cadeira${valores[i] !== 1 ? 's' : ''}</span>
                     </li>
                 `;
             }
-            legendDiv.innerHTML += '</ul>';
+            legendDiv.innerHTML += `</ul>`;
         } else {
             document.getElementById('customLegend').innerHTML = '';
             ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
@@ -499,22 +719,15 @@
         document.querySelectorAll('.renomearCenario').forEach(btn => btn.addEventListener('click', (e) => {
             const id = parseInt(btn.dataset.id);
             const c = App.cenarios.find(c => c.id === id);
-            if (c) {
-                const novo = prompt('Novo nome:', c.nome);
-                if (novo) { c.nome = validarNome(novo); App.persistir(); }
-            }
+            if (c) { const novo = prompt('Novo nome:', c.nome); if (novo) { c.nome = validarNome(novo); App.persistir(); } }
         }));
         document.querySelectorAll('.deletarCenario').forEach(btn => btn.addEventListener('click', (e) => {
             const id = parseInt(btn.dataset.id);
             if (confirm('Remover este cenário?')) {
                 App.cenarios = App.cenarios.filter(c => c.id !== id);
-                if (!App.cenarios.length) {
-                    const novoId = Date.now();
-                    App.cenarios.push({ id: novoId, nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: 10000, numCadeiras: 9 });
-                    App.ativoId = novoId;
-                } else if (App.ativoId === id) App.ativoId = App.cenarios[0].id;
-                App.persistir();
-                App.carregarCenarioPorId(App.ativoId);
+                if (!App.cenarios.length) { const novoId = Date.now(); App.cenarios.push({ id: novoId, nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: 10000, numCadeiras: 9 }); App.ativoId = novoId; }
+                else if (App.ativoId === id) App.ativoId = App.cenarios[0].id;
+                App.persistir(); App.carregarCenarioPorId(App.ativoId);
             }
         }));
     }
@@ -557,99 +770,38 @@
         render(cB, 'compareResultB');
     }
 
-    // ==================== PDF COM GRÁFICO ====================
+    // ==================== PDF ====================
     async function gerarPDF() {
         try {
-            showToast("Preparando o relatório...", "info");
-            const dados = calcularResultado(
-                App.partidos,
-                validarVotos(document.getElementById('totalVotos').value),
-                validarVotos(document.getElementById('numCadeiras').value)
-            );
+            showToast("Preparando relatório...", "info");
+            const dados = calcularResultado(App.partidos, validarVotos(document.getElementById('totalVotos').value), validarVotos(document.getElementById('numCadeiras').value));
             if (!dados) throw new Error("Nenhum dado para gerar PDF.");
-            
-            if (App.chartInstance) {
-                App.chartInstance.update();
-                await new Promise(r => setTimeout(r, 200));
-            }
+            if (App.chartInstance) { App.chartInstance.update(); await new Promise(r => setTimeout(r, 200)); }
             const canvas = document.getElementById('vagasChart');
-            if (!canvas) throw new Error("Canvas do gráfico não encontrado.");
-            
-            const imgData = await html2canvas(canvas, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: false,
-                allowTaint: false
-            }).then(c => c.toDataURL('image/png')).catch(err => {
-                console.warn("Erro ao capturar gráfico:", err);
-                return null;
-            });
-            
+            const imgData = await html2canvas(canvas, { scale: 2, backgroundColor: '#ffffff', logging: false }).then(c => c.toDataURL('image/png')).catch(() => null);
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
-            
             doc.setFontSize(18);
             doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
             doc.setFontSize(10);
             doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
             doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
-            
             let y = 48;
-            if (imgData) {
-                const imgWidth = 90;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
-                y += imgHeight + 10;
-            } else {
-                doc.text("(Gráfico não disponível)", pageWidth/2, y, { align: "center" });
-                y += 10;
-            }
-            
-            doc.autoTable({
-                startY: y,
-                head: [['Partido','Total Votos','Diretas','Sobras','Total']],
-                body: dados.partidos.map(p => {
-                    let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
-                    return [p.nome, p.total, v.diretas, v.sobras, v.total];
-                }),
-                theme: 'striped',
-                styles: { fontSize: 9 },
-                headStyles: { fillColor: [15,118,110] },
-                margin: { top: 10 }
-            });
-            
+            if (imgData) { const imgWidth = 90; const imgHeight = (canvas.height * imgWidth) / canvas.width; doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight); y += imgHeight + 10; }
+            else { doc.text("(Gráfico não disponível)", pageWidth/2, y, { align: "center" }); y += 10; }
+            doc.autoTable({ startY: y, head: [['Partido','Total Votos','Diretas','Sobras','Total']], body: dados.partidos.map(p => { let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 }; return [p.nome, p.total, v.diretas, v.sobras, v.total]; }), theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [15,118,110] } });
             y = doc.lastAutoTable.finalY + 10;
-            doc.text("Candidatos Eleitos", 14, y);
-            y += 6;
-            doc.autoTable({
-                startY: y,
-                head: [['Partido','Candidato','Votos','Tipo']],
-                body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]),
-                theme: 'striped',
-                styles: { fontSize: 9 }
-            });
-            
+            doc.text("Candidatos Eleitos", 14, y); y += 6;
+            doc.autoTable({ startY: y, head: [['Partido','Candidato','Votos','Tipo']], body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]), theme: 'striped', styles: { fontSize: 9 } });
             doc.setFontSize(8);
             doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
             doc.save("relatorio_seu_voto_certo.pdf");
             showToast("PDF gerado com sucesso!");
             return true;
-        } catch (err) {
-            console.error(err);
-            showToast("Erro ao gerar PDF: " + err.message, "error");
-            return false;
-        }
+        } catch (err) { showToast("Erro: " + err.message, "error"); return false; }
     }
-
-    async function salvarCenarioComPdf() {
-        const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
-        if (!nome) return;
-        const pdfOk = await gerarPDF();
-        if (pdfOk) App.salvarCenarioAtual(nome, true);
-        else showToast("Falha na geração do PDF. Cenário não salvo.", "error");
-    }
+    async function salvarCenarioComPdf() { const nome = prompt("Nome do cenário:"); if (!nome) return; const ok = await gerarPDF(); if (ok) App.salvarCenarioAtual(nome, true); else showToast("Falha no PDF", "error"); }
 
     // ==================== CSV ====================
     function exportarCSV() {
@@ -660,10 +812,7 @@
         }
         const csv = rows.map(r=>r.join(",")).join("\n");
         const blob = new Blob(["\uFEFF" + csv], {type:"text/csv"});
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "seuvotocerto.csv";
-        link.click();
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "seuvotocerto.csv"; link.click();
         showToast("Exportado para CSV");
     }
     function importarCSV(file) {
@@ -681,19 +830,11 @@
                 const votosCand = parseInt(partes[3]);
                 if(!nomePartido) continue;
                 let p = novos.find(p=>p.nome===nomePartido);
-                if(!p){
-                    p = { nome: validarNome(nomePartido).toUpperCase(), total: validarVotos(totalPartido), candidatos: [] };
-                    novos.push(p);
-                }
+                if(!p){ p = { nome: validarNome(nomePartido).toUpperCase(), total: validarVotos(totalPartido), candidatos: [] }; novos.push(p); }
                 if(nomeCand && !isNaN(votosCand)) p.candidatos.push({ nome: validarNome(nomeCand), votos: validarVotos(votosCand) });
             }
-            if(novos.length){
-                App.partidos = novos;
-                renderizarTabela();
-                atualizarResultados();
-                App.salvarCenarioAtual(null, false);
-                showToast("Importado com sucesso!");
-            } else showToast("Arquivo CSV inválido.", "error");
+            if(novos.length){ App.partidos = novos; renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); showToast("Importado!"); }
+            else showToast("CSV inválido", "error");
         };
         reader.readAsText(file, "UTF-8");
     }
@@ -713,7 +854,7 @@
         document.getElementById('calcularBtn').addEventListener('click', () => atualizarResultados());
         document.getElementById('exemploBtn').addEventListener('click', () => {
             App.partidos = [
-                { nome: 'PSD', total:7662, candidatos:[{nome:'Candidato A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
+                { nome: 'PSD', total:7662, candidatos:[{nome:'Cand A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
                 { nome: 'PP', total:6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
                 { nome: 'PDT', total:5578, candidatos:[{nome:'C1',votos:832}] },
                 { nome: 'PSB', total:5507, candidatos:[{nome:'D1',votos:1102}] },
@@ -727,27 +868,14 @@
             renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false);
         });
         document.getElementById('resetPartidosBtn').addEventListener('click', () => { App.partidos = []; renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
-        document.getElementById('novoPartidoBtn').addEventListener('click', () => {
-            let nome = prompt('Nome do partido:');
-            if (nome) App.partidos.push({ nome: validarNome(nome).toUpperCase(), total: 0, candidatos: [] });
-            renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false);
-        });
+        document.getElementById('novoPartidoBtn').addEventListener('click', () => { let nome = prompt('Nome do partido:'); if (nome) App.partidos.push({ nome: validarNome(nome).toUpperCase(), total: 0, candidatos: [] }); renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
         document.getElementById('salvarCenarioComPdfBtn').addEventListener('click', salvarCenarioComPdf);
-        document.getElementById('salvarCenarioSemPdfBtn').addEventListener('click', () => {
-            const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
-            if (nome) App.salvarCenarioAtual(nome, false);
-        });
+        document.getElementById('salvarCenarioSemPdfBtn').addEventListener('click', () => { const nome = prompt("Nome do cenário:"); if (nome) App.salvarCenarioAtual(nome, false); });
         document.getElementById('gerarPdfBtn').addEventListener('click', () => gerarPDF());
         document.getElementById('exportarCSVBtn').addEventListener('click', exportarCSV);
-        document.getElementById('importarCSVBtn').addEventListener('click', () => {
-            let input = document.createElement('input'); input.type='file'; input.accept='.csv';
-            input.onchange = e => importarCSV(e.target.files[0]);
-            input.click();
-        });
+        document.getElementById('importarCSVBtn').addEventListener('click', () => { let input = document.createElement('input'); input.type='file'; input.accept='.csv'; input.onchange = e => importarCSV(e.target.files[0]); input.click(); });
         document.getElementById('novoCenarioBtn').addEventListener('click', () => App.criarNovoCenario());
-        document.getElementById('limparCacheBtn').addEventListener('click', () => {
-            if (confirm("Apagar todos os cenários?")) { localStorage.removeItem('seuVotoCerto_cenarios'); location.reload(); }
-        });
+        document.getElementById('limparCacheBtn').addEventListener('click', () => { if (confirm("Apagar todos os cenários?")) { localStorage.removeItem('seuVotoCerto_cenarios'); location.reload(); } });
         document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="calculator"]').click());
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
