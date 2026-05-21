@@ -289,7 +289,7 @@
         <div class="card">
             <div class="card-title"><i class="fas fa-star"></i> Funcionalidades</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0.8rem;">
-                <div><i class="fas fa-chart-bar"></i> Gráfico de colunas</div>
+                <div><i class="fas fa-chart-bar"></i> Gráfico de barras horizontais</div>
                 <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
                 <div><i class="fas fa-moon"></i> Tema escuro profissional</div>
                 <div><i class="fas fa-save"></i> Salvar cenário local</div>
@@ -318,7 +318,7 @@
             <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
             <div class="table-wrapper">
                 <table class="partidos-table" id="partidosTable">
-                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></td></thead>
+                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr></thead>
                     <tbody id="partidosTbody"></tbody>
                 </table>
             </div>
@@ -577,7 +577,7 @@
         html += `</ul>`;
         statsDiv.innerHTML = html;
 
-        // Gráfico de colunas
+        // GRÁFICO DE BARRAS HORIZONTAIS
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -601,6 +601,7 @@
                     }]
                 },
                 options: {
+                    indexAxis: 'y', // <-- ISSO CRIA O GRÁFICO DE BARRAS HORIZONTAIS
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
@@ -608,14 +609,14 @@
                         tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw} cadeira(s)` } }
                     },
                     scales: {
-                        y: {
+                        x: {
                             beginAtZero: true,
                             ticks: { stepSize: 1, precision: 0 },
                             title: { display: true, text: 'Quantidade de Cadeiras', font: { weight: 'bold' } }
                         },
-                        x: {
+                        y: {
                             title: { display: true, text: 'Partidos', font: { weight: 'bold' } },
-                            ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 }
+                            ticks: { autoSkip: false }
                         }
                     }
                 }
@@ -672,15 +673,10 @@
         renderizarTabela();
         atualizarResultados();
         
-        // Adiciona eventos automáticos para recalcular QE ao digitar
         const totalVotosInput = document.getElementById('totalVotos');
         const numCadeirasInput = document.getElementById('numCadeiras');
-        totalVotosInput.addEventListener('input', () => {
-            atualizarResultados();
-        });
-        numCadeirasInput.addEventListener('input', () => {
-            atualizarResultados();
-        });
+        totalVotosInput.addEventListener('input', () => { atualizarResultados(); });
+        numCadeirasInput.addEventListener('input', () => { atualizarResultados(); });
         
         document.getElementById('calcularBtn').addEventListener('click', atualizarResultados);
         document.getElementById('resetPartidosBtn').addEventListener('click', () => { partidos = []; renderizarTabela(); atualizarResultados(); });
