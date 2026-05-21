@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -132,7 +131,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .input-group input, .input-group select {
+        .input-group input {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 0.8rem;
@@ -276,6 +275,14 @@
             font-size: 0.7rem;
             color: var(--text-secondary);
         }
+        .footer-home {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
         @media (max-width: 768px) {
             body { padding: 1rem; }
             .chart-container { flex-direction: column; }
@@ -315,12 +322,14 @@
         <div class="card">
             <div class="card-title"><i class="fas fa-star"></i> Funcionalidades</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0.8rem;">
-                <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV</div>
                 <div><i class="fas fa-chart-pie"></i> Gráfico interativo com legenda</div>
                 <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
                 <div><i class="fas fa-moon"></i> Tema escuro profissional</div>
                 <div><i class="fas fa-save"></i> Salvar cenário local</div>
             </div>
+        </div>
+        <div class="footer-home">
+            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
         </div>
     </div>
 
@@ -332,11 +341,8 @@
                 <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" value="58252"></div>
                 <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" value="15"></div>
                 <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
-                <button id="exemploBtn" class="btn-outline btn"><i class="fas fa-database"></i> Exemplo</button>
                 <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
                 <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
-                <button id="importarCSVBtn" class="btn-outline btn"><i class="fas fa-upload"></i> Importar CSV</button>
-                <button id="exportarCSVBtn" class="btn-outline btn"><i class="fas fa-download"></i> Exportar CSV</button>
             </div>
         </div>
         <div class="card">
@@ -664,42 +670,6 @@
         } catch (err) { showToast("Erro: " + err.message, "error"); return false; }
     }
 
-    // ==================== CSV ====================
-    function exportarCSV() {
-        let rows = [["Partido","Total Votos","Candidato","Votos"]];
-        for(let p of partidos){
-            if(p.candidatos.length===0) rows.push([p.nome, p.total, "", ""]);
-            for(let c of p.candidatos) rows.push([p.nome, p.total, c.nome, c.votos]);
-        }
-        const csv = rows.map(r=>r.join(",")).join("\n");
-        const blob = new Blob(["\uFEFF" + csv], {type:"text/csv"});
-        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "seuvotocerto.csv"; link.click();
-        showToast("Exportado para CSV");
-    }
-    function importarCSV(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target.result;
-            const linhas = text.split(/\r?\n/);
-            const novos = [];
-            for(let i=1; i<linhas.length; i++){
-                if(!linhas[i].trim()) continue;
-                const partes = linhas[i].split(",");
-                const nomePartido = partes[0];
-                const totalPartido = parseInt(partes[1]);
-                const nomeCand = partes[2];
-                const votosCand = parseInt(partes[3]);
-                if(!nomePartido) continue;
-                let p = novos.find(p=>p.nome===nomePartido);
-                if(!p){ p = { nome: validarNome(nomePartido).toUpperCase(), total: validarVotos(totalPartido), candidatos: [] }; novos.push(p); }
-                if(nomeCand && !isNaN(votosCand)) p.candidatos.push({ nome: validarNome(nomeCand), votos: validarVotos(votosCand) });
-            }
-            if(novos.length){ partidos = novos; renderizarTabela(); atualizarResultados(); showToast("Importado!"); }
-            else showToast("CSV inválido", "error");
-        };
-        reader.readAsText(file, "UTF-8");
-    }
-
     // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', () => {
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
@@ -711,27 +681,10 @@
         renderizarTabela();
         atualizarResultados();
         document.getElementById('calcularBtn').addEventListener('click', atualizarResultados);
-        document.getElementById('exemploBtn').addEventListener('click', () => {
-            partidos = [
-                { nome: 'PSD', total:7662, candidatos:[{nome:'Cand A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
-                { nome: 'PP', total:6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
-                { nome: 'PDT', total:5578, candidatos:[{nome:'C1',votos:832}] },
-                { nome: 'PSB', total:5507, candidatos:[{nome:'D1',votos:1102}] },
-                { nome: 'PODEMOS', total:5116, candidatos:[{nome:'E1',votos:2135},{nome:'E2',votos:1024}] },
-                { nome: 'PL', total:5087, candidatos:[{nome:'F1',votos:858}] },
-                { nome: 'UNIÃO', total:4905, candidatos:[{nome:'G1',votos:1212},{nome:'G2',votos:943},{nome:'G3',votos:853}] },
-                { nome: 'AVANTE', total:3408, candidatos:[{nome:'H1',votos:1210}] }
-            ];
-            document.getElementById('totalVotos').value = 58252;
-            document.getElementById('numCadeiras').value = 15;
-            renderizarTabela(); atualizarResultados();
-        });
         document.getElementById('resetPartidosBtn').addEventListener('click', () => { partidos = []; renderizarTabela(); atualizarResultados(); });
         document.getElementById('novoPartidoBtn').addEventListener('click', () => { let nome = prompt('Nome do partido:'); if (nome) partidos.push({ nome: validarNome(nome).toUpperCase(), total: 0, candidatos: [] }); renderizarTabela(); atualizarResultados(); });
         document.getElementById('salvarCenarioBtn').addEventListener('click', () => salvarCenario());
         document.getElementById('gerarPdfBtn').addEventListener('click', () => gerarPDF());
-        document.getElementById('exportarCSVBtn').addEventListener('click', exportarCSV);
-        document.getElementById('importarCSVBtn').addEventListener('click', () => { let input = document.createElement('input'); input.type='file'; input.accept='.csv'; input.onchange=e=>importarCSV(e.target.files[0]); input.click(); });
         document.getElementById('limparCacheBtn').addEventListener('click', () => { if(confirm("Apagar todos os cenários salvos?")){ localStorage.removeItem('seuVotoCerto_cenarios'); carregarCenarios(); renderizarTabela(); atualizarResultados(); } });
         document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="calculator"]').click());
         document.querySelectorAll('.tab-btn').forEach(btn => {
