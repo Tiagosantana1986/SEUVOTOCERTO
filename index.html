@@ -11,6 +11,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -41,17 +42,14 @@
             --accent-light: #134e4a;
         }
         .container { max-width: 1600px; margin: 0 auto; }
-        /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
         .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #2c7da0); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        /* Tabs */
         .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
         .tab-btn { background: transparent; border: none; padding: 0.6rem 1.2rem; border-radius: 2rem; cursor: pointer; font-weight: 500; color: var(--text-secondary); transition: 0.2s; }
         .tab-btn.active { background: var(--accent); color: white; }
         .tab-pane { display: none; animation: fade 0.2s; }
         .tab-pane.active { display: block; }
         @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-        /* Cards */
         .card { background: var(--bg-card); border-radius: 1.5rem; box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
         .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
         .config-grid { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
@@ -73,6 +71,7 @@
         .comparador { display: flex; gap: 1rem; flex-wrap: wrap; }
         .comparador-col { flex: 1; min-width: 280px; }
         hr { margin: 1rem 0; border-color: var(--border); }
+        .warning-icon { color: var(--warning); margin-left: 0.5rem; cursor: help; }
         @media (max-width: 768px) { body { padding: 1rem; } .card { padding: 1rem; } }
     </style>
 </head>
@@ -137,7 +136,7 @@
             <div style="margin-bottom: 1rem;"><button id="novoPartidoBtn" class="btn-sm btn-outline"><i class="fas fa-plus"></i> Adicionar Partido</button></div>
             <div class="table-wrapper">
                 <table class="partidos-table" id="partidosTable">
-                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
+                    <thead><tr><th>Partido</th><th>Total de Votos (informado)</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
                     <tbody id="partidosTbody"></tbody>
                 </table>
             </div>
@@ -195,10 +194,19 @@
 
 <script>
     // ---------- MODELO DE DADOS GLOBAL ----------
-    let partidos = [];      // { nome, total, candidatos: [{nome, votos}] }
+    let partidos = [];      // { nome, total (informado manualmente), candidatos: [{nome, votos}] }
     let chartInstance = null;
     let cenarios = [];      // { id, nome, data, partidos, totalVotos, numCadeiras }
     let cenarioAtivoId = null;
+
+    // Função para verificar consistência (soma dos candidatos vs total informado)
+    function verificarConsistenciaPartido(p) {
+        const somaCandidatos = p.candidatos.reduce((s,c)=>s+c.votos,0);
+        if (somaCandidatos > p.total) {
+            return { ok: false, soma: somaCandidatos };
+        }
+        return { ok: true, soma: somaCandidatos };
+    }
 
     // Carregar cenários do localStorage
     function carregarCenarios() {
@@ -347,9 +355,9 @@
 
     // ---------- FUNÇÕES AUXILIARES ----------
     function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
-    function atualizarTotaisPartidos() { for (let p of partidos) { p.total = p.candidatos.reduce((s,c)=>s+c.votos,0); } }
+    // Não existe mais atualizarTotaisPartidos() automático. O total é manual.
 
-    // Renderização da tabela com otimização
+    // Renderização da tabela com edição independente
     function renderizarTabela() {
         const tbody = document.getElementById('partidosTbody');
         if (!tbody) return;
@@ -357,18 +365,29 @@
         for (let idx = 0; idx < partidos.length; idx++) {
             const p = partidos[idx];
             const tr = document.createElement('tr');
-            // Nome
+            // Nome do partido
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
             inpNome.type = 'text'; inpNome.value = p.nome; inpNome.style.width = '100px'; inpNome.className = 'partido-nome';
             inpNome.addEventListener('change', (e) => { p.nome = e.target.value.toUpperCase().substring(0,10); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); });
             tdNome.appendChild(inpNome);
-            // Total (editável)
+            // Total do partido (editável manualmente)
             const tdTotal = document.createElement('td');
+            const divTotal = document.createElement('div');
+            divTotal.style.display = 'flex'; divTotal.style.alignItems = 'center'; divTotal.style.gap = '0.5rem';
             const inpTotal = document.createElement('input');
             inpTotal.type = 'number'; inpTotal.value = p.total; inpTotal.style.width = '100px';
             inpTotal.addEventListener('change', (e) => { p.total = parseInt(e.target.value) || 0; renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); });
-            tdTotal.appendChild(inpTotal);
+            divTotal.appendChild(inpTotal);
+            // Ícone de aviso se inconsistente
+            const { ok, soma } = verificarConsistenciaPartido(p);
+            if (!ok) {
+                const warningIcon = document.createElement('i');
+                warningIcon.className = 'fas fa-exclamation-triangle warning-icon';
+                warningIcon.title = `A soma dos candidatos (${soma}) excede o total informado (${p.total}). O cálculo usará o total informado.`;
+                divTotal.appendChild(warningIcon);
+            }
+            tdTotal.appendChild(divTotal);
             // Candidatos
             const tdCand = document.createElement('td');
             const container = document.createElement('div');
@@ -394,22 +413,21 @@
             tr.append(tdNome, tdTotal, tdCand, tdAcoes);
             tbody.appendChild(tr);
         }
-        // eventos
+        // Eventos dos candidatos
         document.querySelectorAll('.cand-nome').forEach(inp => { inp.addEventListener('change', (e) => { let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx); if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].nome=e.target.value; renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        document.querySelectorAll('.cand-voto').forEach(inp => { inp.addEventListener('change', (e) => { let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx); let val=parseInt(e.target.value)||0; if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].votos=val; atualizarTotaisPartidos(); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        document.querySelectorAll('.remove-cand-btn').forEach(btn => { btn.addEventListener('click', (e) => { let pidx=parseInt(btn.dataset.pidx), cidx=parseInt(btn.dataset.cidx); if(partidos[pidx]) partidos[pidx].candidatos.splice(cidx,1); atualizarTotaisPartidos(); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        document.querySelectorAll('.add-cand-btn').forEach(btn => { btn.addEventListener('click', (e) => { let idx=parseInt(btn.dataset.idx); let nome=document.getElementById(`newCandNome_${idx}`).value.trim(); let votos=parseInt(document.getElementById(`newCandVotos_${idx}`).value)||0; if(!nome){alert('Digite o nome'); return;} partidos[idx].candidatos.push({nome, votos}); atualizarTotaisPartidos(); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        atualizarTotaisPartidos();
+        document.querySelectorAll('.cand-voto').forEach(inp => { inp.addEventListener('change', (e) => { let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx); let val=parseInt(e.target.value)||0; if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].votos=val; renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
+        document.querySelectorAll('.remove-cand-btn').forEach(btn => { btn.addEventListener('click', (e) => { let pidx=parseInt(btn.dataset.pidx), cidx=parseInt(btn.dataset.cidx); if(partidos[pidx]) partidos[pidx].candidatos.splice(cidx,1); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
+        document.querySelectorAll('.add-cand-btn').forEach(btn => { btn.addEventListener('click', (e) => { let idx=parseInt(btn.dataset.idx); let nome=document.getElementById(`newCandNome_${idx}`).value.trim(); let votos=parseInt(document.getElementById(`newCandVotos_${idx}`).value)||0; if(!nome){alert('Digite o nome'); return;} partidos[idx].candidatos.push({nome, votos}); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
     }
 
-    // Cálculo matemático
+    // Cálculo matemático (usa o total informado do partido, não a soma dos candidatos)
     function calcularResultadoComDados(partidosData, votosValidos, cadeiras) {
         if (!partidosData.length) return null;
         const QE = Math.floor(votosValidos / cadeiras);
         const limitePartido80 = Math.floor(0.8 * QE) + 1;
         const limiteCandidato20 = Math.floor(0.2 * QE) + 1;
         let vagasDiretas = {};
-        for (let p of partidosData) vagasDiretas[p.nome] = Math.floor(p.total / QE);
+        for (let p of partidosData) vagasDiretas[p.nome] = Math.floor(p.total / QE); // p.total é o valor manual
         let totalDiretas = Object.values(vagasDiretas).reduce((a,b)=>a+b,0);
         let sobrasRestantes = cadeiras - totalDiretas;
         let partidosAptos = partidosData.filter(p => p.total >= limitePartido80 && p.candidatos.some(c => c.votos >= limiteCandidato20));
@@ -479,9 +497,9 @@
         chartInstance = new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data:valores, backgroundColor:['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options:{ responsive:true } });
     }
 
-    // Exportar CSV
+    // Exportar CSV (com total manual e candidatos)
     function exportarCSV() {
-        let csvRows = [["Partido","Total Votos","Candidato","Votos"]];
+        let csvRows = [["Partido","Total de Votos (informado)","Candidato","Votos"]];
         for(let p of partidos){
             if(p.candidatos.length===0) csvRows.push([p.nome, p.total, "", ""]);
             for(let c of p.candidatos) csvRows.push([p.nome, p.total, c.nome, c.votos]);
@@ -517,7 +535,6 @@
             }
             if(novosPartidos.length){
                 partidos = novosPartidos;
-                atualizarTotaisPartidos();
                 renderizarTabela();
                 calcularEleicao();
                 salvarCenarioAtivo();
@@ -527,43 +544,39 @@
         reader.readAsText(file, "UTF-8");
     }
 
-    // Gerar PDF real com jsPDF + html2canvas
+    // Gerar PDF real com jsPDF + autoTable
     async function gerarPDF() {
         const dados = calcularResultado();
         if(!dados){ alert("Nenhum dado para gerar PDF"); return; }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         const pageWidth = doc.internal.pageSize.getWidth();
-        // título
         doc.setFontSize(18);
         doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
         doc.setFontSize(10);
         doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
         doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
         // Tabela de partidos
-        let y = 50;
-        doc.setFontSize(11);
-        doc.text("Distribuição de Vagas", 14, y);
-        y+=6;
-        doc.autoTable ? doc.autoTable({
-            startY: y,
-            head: [['Partido','Votos','Diretas','Sobras','Total']],
+        doc.autoTable({
+            startY: 48,
+            head: [['Partido','Votos (total)','Diretas','Sobras','Total']],
             body: dados.partidos.map(p => {
                 let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
                 return [p.nome, p.total, v.diretas, v.sobras, v.total];
             }),
             theme: 'striped',
-            styles: { fontSize: 9 }
-        }) : (()=>{})();
-        if(typeof doc.autoTable === 'function') y = doc.lastAutoTable.finalY + 10;
-        else y+= 20;
+            styles: { fontSize: 9 },
+            headStyles: { fillColor: [15,118,110] }
+        });
+        let y = doc.lastAutoTable.finalY + 10;
         doc.text("Candidatos Eleitos", 14, y);
-        y+=6;
-        if(typeof doc.autoTable === 'function') doc.autoTable({
+        y += 6;
+        doc.autoTable({
             startY: y,
             head: [['Partido','Candidato','Votos','Tipo']],
             body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]),
-            theme: 'striped'
+            theme: 'striped',
+            styles: { fontSize: 9 }
         });
         doc.setFontSize(8);
         doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
@@ -571,17 +584,17 @@
     }
 
     // Eventos e inicialização
-    function calcularEleicao() { atualizarTotaisPartidos(); atualizarResultados(); salvarCenarioAtivo(); }
+    function calcularEleicao() { atualizarResultados(); salvarCenarioAtivo(); }
     function carregarExemplo() {
         partidos = [
-            { nome: 'PSD', total:7662, candidatos:[{nome:'Candidato A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
-            { nome: 'PP', total:6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
-            { nome: 'PDT', total:5578, candidatos:[{nome:'C1',votos:832}] },
-            { nome: 'PSB', total:5507, candidatos:[{nome:'D1',votos:1102}] },
-            { nome: 'PODEMOS', total:5116, candidatos:[{nome:'E1',votos:2135},{nome:'E2',votos:1024}] },
-            { nome: 'PL', total:5087, candidatos:[{nome:'F1',votos:858}] },
-            { nome: 'UNIÃO', total:4905, candidatos:[{nome:'G1',votos:1212},{nome:'G2',votos:943},{nome:'G3',votos:853}] },
-            { nome: 'AVANTE', total:3408, candidatos:[{nome:'H1',votos:1210}] }
+            { nome: 'PSD', total: 7662, candidatos:[{nome:'Candidato A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
+            { nome: 'PP', total: 6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
+            { nome: 'PDT', total: 5578, candidatos:[{nome:'C1',votos:832}] },
+            { nome: 'PSB', total: 5507, candidatos:[{nome:'D1',votos:1102}] },
+            { nome: 'PODEMOS', total: 5116, candidatos:[{nome:'E1',votos:2135},{nome:'E2',votos:1024}] },
+            { nome: 'PL', total: 5087, candidatos:[{nome:'F1',votos:858}] },
+            { nome: 'UNIÃO', total: 4905, candidatos:[{nome:'G1',votos:1212},{nome:'G2',votos:943},{nome:'G3',votos:853}] },
+            { nome: 'AVANTE', total: 3408, candidatos:[{nome:'H1',votos:1210}] }
         ];
         document.getElementById('totalVotos').value = 58252;
         document.getElementById('numCadeiras').value = 15;
