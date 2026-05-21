@@ -4,46 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>SEU VOTO CERTO | Apuração Proporcional Profissional</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg-page);
-            transition: background 0.3s, color 0.2s;
+            background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%);
+            transition: background 0.3s;
+            min-height: 100vh;
             padding: 2rem;
         }
-        :root {
-            --bg-page: #f8fafc;
-            --card-bg: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --border: #e2e8f0;
-            --accent: #0f766e;
-            --accent-light: #ccfbf1;
-            --danger: #dc2626;
-            --warning: #f59e0b;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
-            --table-hover: #f1f5f9;
-        }
+
+        /* Tema escuro */
         body.dark {
-            --bg-page: #0f172a;
-            --card-bg: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border: #334155;
-            --accent: #2dd4bf;
-            --accent-light: #134e4a;
-            --table-hover: #2d3a4f;
+            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Container principal */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -51,66 +46,123 @@
             flex-wrap: wrap;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        body.dark .header {
+            border-bottom-color: rgba(255,255,255,0.05);
         }
         .logo h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent), #2c7da0);
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0f766e, #2c7da0);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            letter-spacing: -0.5px;
         }
-        .logo p { font-size: 0.85rem; color: var(--text-secondary); }
+        .logo p {
+            font-size: 0.8rem;
+            color: #4a5568;
+            margin-top: 0.25rem;
+        }
+        body.dark .logo p {
+            color: #94a3b8;
+        }
+        .theme-toggle {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        body.dark .theme-toggle {
+            background: rgba(30,41,59,0.8);
+            border-color: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+        }
+        .theme-toggle:hover {
+            transform: scale(0.96);
+        }
+
+        /* Tabs */
         .tabs {
             display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            gap: 0.75rem;
             margin-bottom: 2rem;
-            background: var(--card-bg);
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
             padding: 0.5rem;
             border-radius: 3rem;
-            border: 1px solid var(--border);
+            width: fit-content;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        body.dark .tabs {
+            background: rgba(30,41,59,0.5);
+            border-color: rgba(255,255,255,0.05);
         }
         .tab-btn {
             background: transparent;
             border: none;
-            padding: 0.6rem 1.4rem;
+            padding: 0.6rem 1.5rem;
             border-radius: 2rem;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: 500;
-            color: var(--text-secondary);
             transition: all 0.2s;
+            color: #1e293b;
+        }
+        body.dark .tab-btn {
+            color: #cbd5e1;
         }
         .tab-btn.active {
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 2px 8px rgba(15,118,110,0.3);
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            color: #0f766e;
         }
-        .tab-pane { display: none; animation: fade 0.3s ease; }
-        .tab-pane.active { display: block; }
-        @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        body.dark .tab-btn.active {
+            background: #1e293b;
+            color: #2dd4bf;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Cards */
         .card {
-            background: var(--card-bg);
+            background: white;
             border-radius: 1.5rem;
-            box-shadow: var(--shadow-md);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border);
-            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 1.75rem;
+            margin-bottom: 1.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.01);
+            transition: all 0.2s;
+            border: 1px solid rgba(0,0,0,0.03);
         }
-        .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        body.dark .card {
+            background: #1e293b;
+            border-color: rgba(255,255,255,0.05);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
         .card-title {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             font-weight: 600;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            border-left: 4px solid var(--accent);
-            padding-left: 0.75rem;
-            color: var(--text-primary);
+            gap: 0.6rem;
+            color: #0f172a;
         }
+        body.dark .card-title {
+            color: #f1f5f9;
+        }
+        .card-title i {
+            color: #0f766e;
+            font-size: 1.4rem;
+        }
+
+        /* Grid de configuração */
         .config-grid {
             display: flex;
             flex-wrap: wrap;
@@ -126,84 +178,114 @@
         .input-group label {
             font-size: 0.7rem;
             font-weight: 600;
-            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #475569;
+        }
+        body.dark .input-group label {
+            color: #94a3b8;
         }
         .input-group input {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 0.8rem;
-            padding: 0.6rem 1rem;
-            color: var(--text-primary);
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            color: #0f172a;
+        }
+        body.dark .input-group input {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
         }
         .input-group input:focus {
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-light);
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15,118,110,0.1);
         }
         .input-group input::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.6;
+            color: #94a3b8;
         }
-        .qe-info {
-            margin-top: 1rem;
-            padding: 0.5rem 1rem;
-            background: var(--accent-light);
-            border-radius: 0.8rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--accent);
-            text-align: center;
-        }
+
+        /* Botões */
         .btn {
             border: none;
             border-radius: 2rem;
-            padding: 0.6rem 1.2rem;
-            font-weight: 500;
+            padding: 0.7rem 1.4rem;
+            font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            background: var(--accent);
+            gap: 0.6rem;
+            transition: all 0.2s;
+            background: #0f766e;
             color: white;
-            transition: 0.2s;
+            font-size: 0.85rem;
         }
         .btn-outline {
             background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-primary);
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
         }
-        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
-        .btn-danger { background: var(--danger); }
-        .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
-        .table-wrapper { overflow-x: auto; border-radius: 1rem; margin-top: 1rem; }
+        body.dark .btn-outline {
+            border-color: #475569;
+            color: #cbd5e1;
+        }
+        .btn-danger {
+            background: #dc2626;
+        }
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        /* Tabela */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
         .partidos-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .partidos-table th, .partidos-table td {
-            border-bottom: 1px solid var(--border);
-            padding: 0.8rem 0.5rem;
-            text-align: left;
-            vertical-align: top;
-        }
         .partidos-table th {
-            color: var(--text-secondary);
+            text-align: left;
+            padding: 0.8rem 0.5rem;
+            color: #475569;
             font-weight: 600;
             font-size: 0.7rem;
             text-transform: uppercase;
+            border-bottom: 1px solid #e2e8f0;
         }
-        .partidos-table tr:hover { background: var(--table-hover); }
+        body.dark .partidos-table th {
+            color: #94a3b8;
+            border-bottom-color: #334155;
+        }
+        .partidos-table td {
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        body.dark .partidos-table td {
+            border-bottom-color: #2d3a4f;
+        }
         .candidato-row {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
             align-items: center;
             margin-bottom: 0.5rem;
-            background: var(--bg-page);
+            background: #f8fafc;
             padding: 0.5rem;
             border-radius: 1rem;
+        }
+        body.dark .candidato-row {
+            background: #0f172a;
         }
         .add-cand-form {
             display: flex;
@@ -211,63 +293,110 @@
             margin-top: 0.5rem;
             flex-wrap: wrap;
         }
+        .add-cand-form input {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+        }
+        body.dark .add-cand-form input {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        /* QE info */
+        .qe-info {
+            margin-top: 1rem;
+            padding: 0.7rem 1rem;
+            background: #f1f5f9;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            color: #0f766e;
+        }
+        body.dark .qe-info {
+            background: #0f172a;
+            color: #2dd4bf;
+        }
+
+        /* Resultados e gráfico */
         .result-stats {
-            background: var(--bg-page);
+            background: #f8fafc;
             border-radius: 1rem;
             padding: 1rem;
             margin-top: 1.5rem;
         }
+        body.dark .result-stats {
+            background: #0f172a;
+        }
         .badge {
-            background: var(--accent-light);
+            background: #ccfbf1;
             padding: 0.2rem 0.6rem;
             border-radius: 2rem;
             font-size: 0.7rem;
-            color: var(--accent);
+            color: #0f766e;
             display: inline-block;
         }
         .toast {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: var(--accent);
+            background: #0f766e;
             color: white;
             padding: 0.8rem 1.2rem;
             border-radius: 2rem;
             z-index: 1000;
             animation: fadeIn 0.3s;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
-        .toast.error { background: var(--danger); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .toast.error {
+            background: #dc2626;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .footer {
             text-align: center;
             margin-top: 2rem;
             padding-top: 1rem;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid #e2e8f0;
             font-size: 0.7rem;
-            color: var(--text-secondary);
+            color: #64748b;
+        }
+        body.dark .footer {
+            border-top-color: #334155;
+            color: #94a3b8;
         }
         .footer-home {
             margin-top: 1.5rem;
             text-align: center;
             font-size: 0.7rem;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border);
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
             padding-top: 1rem;
         }
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
+        body.dark .footer-home {
+            border-top-color: #334155;
+            color: #94a3b8;
+        }
+        /* Gráfico container */
+        .chart-container {
+            margin: 1rem 0;
+            min-height: 400px;
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="app-container">
     <div class="header">
         <div class="logo">
             <h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1>
             <p>Apuração proporcional profissional | Auditoria TSE</p>
         </div>
-        <button id="themeToggle" class="btn-outline btn-sm"><i class="fas fa-moon"></i> Modo Escuro</button>
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Modo Escuro</button>
     </div>
 
     <div class="tabs">
@@ -279,8 +408,8 @@
     <div id="homePane" class="tab-pane active">
         <div class="card">
             <div class="card-title"><i class="fas fa-graduation-cap"></i> Sistema proporcional brasileiro</div>
-            <p style="margin-bottom: 1rem;">Regras para vereadores, deputados estaduais e federais:</p>
-            <ul style="margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+            <p style="margin-bottom: 1rem; color: #334155;">Regras para vereadores, deputados estaduais e federais:</p>
+            <ul style="margin-left: 1.5rem; color: #475569; line-height: 1.6;">
                 <li><strong>Quociente Eleitoral (QE)</strong> = votos válidos ÷ cadeiras.</li>
                 <li><strong>Vagas diretas</strong> = parte inteira da divisão dos votos do partido pelo QE.</li>
                 <li><strong>Sobras</strong> – partido precisa de ≥80% do QE e candidato com ≥20% do QE. Distribuição pelo método das médias.</li>
@@ -292,7 +421,7 @@
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-star"></i> Funcionalidades</div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0.8rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0.8rem;">
                 <div><i class="fas fa-chart-bar"></i> Gráfico de barras horizontais</div>
                 <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
                 <div><i class="fas fa-moon"></i> Tema escuro profissional</div>
@@ -322,14 +451,16 @@
             <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
             <div class="table-wrapper">
                 <table class="partidos-table" id="partidosTable">
-                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr></thead>
+                    <thead>
+                        <tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr>
+                    </thead>
                     <tbody id="partidosTbody"></tbody>
                 </table>
             </div>
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
-            <div style="height: 400px;">
+            <div class="chart-container">
                 <canvas id="vagasChart" width="400" height="400"></canvas>
             </div>
             <div style="margin-top: 1rem; text-align: right;">
@@ -379,7 +510,6 @@
                 cenarios = JSON.parse(stored);
             } catch(e) { cenarios = []; }
         }
-        // Se houver cenários, carregamos apenas os partidos do último cenário, mas NÃO carregamos os parâmetros de votos/cadeiras
         if (cenarios.length > 0) {
             const ultimo = cenarios[cenarios.length-1];
             if (ultimo.partidos) {
@@ -390,10 +520,8 @@
                 }));
             }
         }
-        // Garantir que os campos de entrada estejam VAZIOS
         document.getElementById('totalVotos').value = '';
         document.getElementById('numCadeiras').value = '';
-        // Atualizar a mensagem de QE
         document.getElementById('qeInfo').innerHTML = '⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.';
     }
 
@@ -488,7 +616,7 @@
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
             inpNome.type = 'text'; inpNome.value = p.nome; inpNome.maxLength = 30;
-            inpNome.style.background = 'var(--card-bg)'; inpNome.style.border = '1px solid var(--border)'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
+            inpNome.style.background = 'var(--bg-card)'; inpNome.style.border = '1px solid var(--border)'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
             inpNome.addEventListener('change', (e) => { p.nome = validarNome(e.target.value); renderizarTabela(); atualizarResultados(); });
             tdNome.appendChild(inpNome);
             const tdTotal = document.createElement('td');
@@ -500,7 +628,7 @@
             divTotal.appendChild(inpTotal);
             const somaCand = p.candidatos.reduce((s, c) => s + c.votos, 0);
             if (somaCand > p.total) {
-                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle'; warn.style.color = 'var(--warning)'; warn.style.marginLeft = '0.5rem';
+                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle'; warn.style.color = '#f59e0b'; warn.style.marginLeft = '0.5rem';
                 warn.title = `Soma dos candidatos (${somaCand}) excede o total informado (${p.total}). O cálculo usa o total informado.`;
                 divTotal.appendChild(warn);
             }
@@ -510,8 +638,8 @@
             p.candidatos.forEach((cand, cidx) => {
                 const row = document.createElement('div'); row.className = 'candidato-row';
                 row.innerHTML = `
-                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px;">
-                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px;">
+                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px; background:#fff; border:1px solid #e2e8f0; border-radius:2rem; padding:0.3rem 0.6rem;">
+                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px; background:#fff; border:1px solid #e2e8f0; border-radius:2rem; padding:0.3rem 0.6rem;">
                     <button class="btn-sm btn-outline" data-remove-cand data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
                 `;
                 container.appendChild(row);
@@ -525,7 +653,7 @@
             container.appendChild(addDiv);
             tdCand.appendChild(container);
             const tdAcoes = document.createElement('td');
-            const btnDel = document.createElement('button'); btnDel.innerHTML = '<i class="fas fa-times-circle"></i>'; btnDel.className = 'btn-sm btn-outline'; btnDel.style.color = 'var(--danger)';
+            const btnDel = document.createElement('button'); btnDel.innerHTML = '<i class="fas fa-times-circle"></i>'; btnDel.className = 'btn-sm btn-outline'; btnDel.style.color = '#dc2626';
             btnDel.addEventListener('click', () => { partidos.splice(idx, 1); renderizarTabela(); atualizarResultados(); });
             tdAcoes.appendChild(btnDel);
             tr.append(tdNome, tdTotal, tdCand, tdAcoes);
@@ -591,7 +719,6 @@
         html += `</ul>`;
         statsDiv.innerHTML = html;
 
-        // GRÁFICO DE BARRAS HORIZONTAIS
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -601,39 +728,8 @@
         if (labels.length) {
             chartInstance = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Cadeiras',
-                        data: valores,
-                        backgroundColor: cores.slice(0, labels.length),
-                        borderColor: cores.slice(0, labels.length),
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.8
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw} cadeira(s)` } }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1, precision: 0 },
-                            title: { display: true, text: 'Quantidade de Cadeiras', font: { weight: 'bold' } }
-                        },
-                        y: {
-                            title: { display: true, text: 'Partidos', font: { weight: 'bold' } },
-                            ticks: { autoSkip: false }
-                        }
-                    }
-                }
+                data: { labels, datasets: [{ label: 'Cadeiras', data: valores, backgroundColor: cores.slice(0, labels.length), borderColor: cores.slice(0, labels.length), borderWidth: 1, borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.8 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw} cadeira(s)` } } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, title: { display: true, text: 'Quantidade de Cadeiras', font: { weight: 'bold' } } }, y: { title: { display: true, text: 'Partidos', font: { weight: 'bold' } }, ticks: { autoSkip: false } } } }
             });
         } else {
             ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
@@ -686,12 +782,12 @@
         carregarCenarios();
         renderizarTabela();
         atualizarResultados();
-        
+
         const totalVotosInput = document.getElementById('totalVotos');
         const numCadeirasInput = document.getElementById('numCadeiras');
         totalVotosInput.addEventListener('input', () => { atualizarResultados(); });
         numCadeirasInput.addEventListener('input', () => { atualizarResultados(); });
-        
+
         document.getElementById('calcularBtn').addEventListener('click', atualizarResultados);
         document.getElementById('resetPartidosBtn').addEventListener('click', () => { partidos = []; renderizarTabela(); atualizarResultados(); });
         document.getElementById('novoPartidoBtn').addEventListener('click', () => { let nome = prompt('Nome do partido:'); if (nome) partidos.push({ nome: validarNome(nome).toUpperCase(), total: 0, candidatos: [] }); renderizarTabela(); atualizarResultados(); });
