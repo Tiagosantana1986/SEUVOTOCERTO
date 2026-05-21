@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>🗳️ Eleições Proporcionais (Brasil) – com Total do Partido Manual</title>
+    <title>SEU VOTO CERTO – Calculadora de Eleições Proporcionais (Brasil)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,7 +23,7 @@
             padding: 24px 28px;
         }
         h1 {
-            font-size: 1.9rem;
+            font-size: 2rem;
             margin: 0 0 0.25rem;
             color: #0a2b3e;
             display: flex;
@@ -31,12 +31,21 @@
             gap: 14px;
             flex-wrap: wrap;
         }
+        h1 .nome-programa {
+            background: #1e7e6c;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
         h1 small {
             font-size: 0.75rem;
             background: #1e4663;
             color: white;
             padding: 4px 12px;
             border-radius: 60px;
+            font-weight: normal;
         }
         .subtitulo {
             color: #2c5a7a;
@@ -171,11 +180,21 @@
             margin-top: 28px;
             color: #6a8eaa;
         }
+        .badge-versao {
+            background: #e2eaf1;
+            color: #1f5777;
+            border-radius: 30px;
+            padding: 2px 12px;
+            font-size: 0.7rem;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🗳️ Eleições Proporcionais <small>Vereadores / Deputados (Brasil)</small></h1>
+    <h1>
+        <span class="nome-programa">🗳️ SEU VOTO CERTO</span>
+        <small>Eleições proporcionais – vereadores / deputados</small>
+    </h1>
     <div class="subtitulo">✔️ Informe o TOTAL de votos de cada partido + apenas os candidatos com chances reais (os demais votos são considerados como legenda/candidatos não cadastrados).</div>
 
     <div class="config-panel">
@@ -209,7 +228,7 @@
     <div id="resultados" class="resultados-area">
         ⚡ Clique em "Calcular Eleição".
     </div>
-    <footer>O total de votos do partido é o valor usado para QE, vagas diretas e sobras. Os candidatos listados concorrem às vagas; votos não associados a candidatos (diferença) são considerados "outros" e não elegíveis individualmente. Vagas excedentes sem candidatos suficientes ficam não preenchidas.</footer>
+    <footer>🔍 <strong>SEU VOTO CERTO</strong> – Sistema que respeita o QE, 80% para o partido, 20% para o candidato na sobra, e método das médias. O total de votos do partido é o valor usado para as vagas; os candidatos listados concorrem; diferença vira "outros votos".</footer>
 </div>
 
 <script>
@@ -480,7 +499,7 @@
         for (let p of partidosAptos) {
             let dir = vagasDiretas[p.nome] || 0;
             let sob = vagasSobras[p.nome] || 0;
-            html += `<tr><td>${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></tr>`;
+            html += `<tr><td style="font-weight:bold">${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></td>`;
         }
         html += `</table>`;
         
@@ -509,8 +528,8 @@
     // Carregar exemplo real (dados da conversa, com totais manuais e candidatos relevantes)
     function carregarExemplo() {
         partidos = [];
-        partidos.push({ nome: 'A', total: 7662, candidatos: [{nome:'Levi do Handebol',votos:1720},{nome:'Simone Sponton',votos:913},{nome:'Luisinho da Saude',votos:877},{nome:'Cecéu',votos:849}] }); // Toxinha e Nilsinho não listados (votos de legenda)
-        partidos.push({ nome: 'B', total: 6968, candidatos: [{nome:'Paulo Grassano',votos:1576},{nome:'Professor Marcelo',votos:1010}] }); // Marcos Algo Novo (772) não listado (abaixo de 777, não teria chance na sobra)
+        partidos.push({ nome: 'A', total: 7662, candidatos: [{nome:'Levi do Handebol',votos:1720},{nome:'Simone Sponton',votos:913},{nome:'Luisinho da Saude',votos:877},{nome:'Cecéu',votos:849}] });
+        partidos.push({ nome: 'B', total: 6968, candidatos: [{nome:'Paulo Grassano',votos:1576},{nome:'Professor Marcelo',votos:1010}] });
         partidos.push({ nome: 'C', total: 5578, candidatos: [{nome:'Meiry Farias',votos:832}] });
         partidos.push({ nome: 'D', total: 5507, candidatos: [{nome:'Marcio Nicke',votos:1102}] });
         partidos.push({ nome: 'E', total: 5116, candidatos: [{nome:'Décio Rosanelli',votos:2135},{nome:'Aroldo Pagan',votos:1024}] });
