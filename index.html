@@ -379,7 +379,9 @@
             color: #94a3b8;
         }
         .chart-container {
-            min-height: 400px;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 320px;
         }
         .cards-grid {
             display: grid;
@@ -491,7 +493,7 @@
         <div class="card">
             <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
             <div class="chart-container">
-                <canvas id="vagasChart" width="400" height="400"></canvas>
+                <canvas id="vagasChart" width="500" height="280"></canvas>
             </div>
             <div style="margin-top: 1rem; text-align: right;">
                 <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
@@ -783,7 +785,7 @@
             doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
             let y = 48;
             if (imgData) {
-                const imgWidth = 150;
+                const imgWidth = 130;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
                 y += imgHeight + 10;
