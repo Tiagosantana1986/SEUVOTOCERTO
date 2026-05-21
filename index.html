@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -199,45 +198,7 @@
             flex-wrap: wrap;
         }
         .chart-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            align-items: center;
-            justify-content: center;
-        }
-        .chart-canvas {
-            flex: 2;
-            min-width: 280px;
-            max-width: 400px;
-        }
-        .chart-legend {
-            flex: 1;
-            min-width: 200px;
-            background: var(--bg-page);
-            border-radius: 1rem;
-            padding: 1rem;
-            border: 1px solid var(--border);
-        }
-        .legend-title {
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 0.5rem;
-        }
-        .legend-list { list-style: none; padding: 0; margin: 0; }
-        .legend-list li {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.7rem;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-        }
-        .legend-color {
-            width: 18px;
-            height: 18px;
-            border-radius: 4px;
-            margin-right: 0.7rem;
+            margin: 1rem 0;
         }
         .result-stats {
             background: var(--bg-page);
@@ -285,7 +246,6 @@
         }
         @media (max-width: 768px) {
             body { padding: 1rem; }
-            .chart-container { flex-direction: column; }
         }
     </style>
 </head>
@@ -322,7 +282,7 @@
         <div class="card">
             <div class="card-title"><i class="fas fa-star"></i> Funcionalidades</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0.8rem;">
-                <div><i class="fas fa-chart-pie"></i> Gráfico interativo com legenda</div>
+                <div><i class="fas fa-chart-bar"></i> Gráfico de colunas</div>
                 <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
                 <div><i class="fas fa-moon"></i> Tema escuro profissional</div>
                 <div><i class="fas fa-save"></i> Salvar cenário local</div>
@@ -356,12 +316,11 @@
             </div>
         </div>
         <div class="card">
-            <div class="card-title"><i class="fas fa-chart-pie"></i> Resultado da Apuração</div>
-            <div class="chart-container">
-                <div class="chart-canvas"><canvas id="vagasChart" width="400" height="300"></canvas></div>
-                <div id="customLegend" class="chart-legend"></div>
+            <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
+            <div style="height: 400px;">
+                <canvas id="vagasChart" width="400" height="400"></canvas>
             </div>
-            <div style="margin-top: 1.5rem; text-align: right;">
+            <div style="margin-top: 1rem; text-align: right;">
                 <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
             </div>
             <div id="resultadoStats" class="result-stats"></div>
@@ -576,7 +535,7 @@
         }));
     }
 
-    // ==================== RESULTADOS E GRÁFICO ====================
+    // ==================== RESULTADOS E GRÁFICO DE COLUNAS ====================
     function atualizarResultados() {
         const votosValidos = validarVotos(document.getElementById('totalVotos').value);
         const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
@@ -585,7 +544,6 @@
         if (!dados || !partidos.length) {
             statsDiv.innerHTML = '<p>Nenhum partido cadastrado.</p>';
             if (chartInstance) chartInstance.destroy();
-            document.getElementById('customLegend').innerHTML = '';
             return;
         }
         let html = `<div><strong>Quociente Eleitoral:</strong> ${dados.QE} votos</div>
@@ -598,6 +556,8 @@
         }
         html += `</ul>`;
         statsDiv.innerHTML = html;
+
+        // Gráfico de colunas (vertical bar chart)
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
@@ -605,31 +565,42 @@
         const valores = partidosComVagas.map(p => dados.vagasPorPartido[p.nome]?.total || 0);
         const cores = ['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec489a','#06b6d4','#84cc16','#f97316','#d946ef','#14b8a6','#f43f5e','#6366f1','#a855f7','#eab308','#22c55e'];
         if (labels.length) {
-            const plugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
             chartInstance = new Chart(ctx, {
-                type: 'pie',
-                data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cadeiras',
+                        data: valores,
+                        backgroundColor: cores.slice(0, labels.length),
+                        borderColor: cores.slice(0, labels.length),
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8
+                    }]
+                },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: (item) => `${item.label}: ${item.raw} cadeira(s)` } },
-                        datalabels: plugins.length ? {
-                            formatter: (value, context) => `${context.chart.data.labels[context.dataIndex]} ${value}`,
-                            color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: 4, font: { weight: 'bold', size: 11 }
-                        } : undefined
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw} cadeira(s)` } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, precision: 0 },
+                            title: { display: true, text: 'Quantidade de Cadeiras', font: { weight: 'bold' } }
+                        },
+                        x: {
+                            title: { display: true, text: 'Partidos', font: { weight: 'bold' } },
+                            ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 }
+                        }
                     }
-                },
-                plugins
+                }
             });
-            const legendDiv = document.getElementById('customLegend');
-            legendDiv.innerHTML = `<div class="legend-title">📊 Distribuição de Vagas</div><ul class="legend-list">`;
-            for (let i = 0; i < labels.length; i++) {
-                legendDiv.innerHTML += `<li><span class="legend-color" style="background-color: ${cores[i]};"></span><span><strong>${labels[i]}</strong> – ${valores[i]} cadeira${valores[i] !== 1 ? 's' : ''}</span></li>`;
-            }
-            legendDiv.innerHTML += `</ul>`;
         } else {
-            document.getElementById('customLegend').innerHTML = '';
             ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
         }
     }
@@ -653,7 +624,7 @@
             doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
             let y = 48;
             if (imgData) {
-                const imgWidth = 90;
+                const imgWidth = 150;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
                 y += imgHeight + 10;
