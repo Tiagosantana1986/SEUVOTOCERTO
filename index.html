@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEU VOTO CERTO | Calculadora de Apuração Proporcional</title>
+    <title>SEU VOTO CERTO | Apuração Proporcional Profissional</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,6 +22,7 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%);
             transition: background 0.3s;
+            min-height: 100vh;
             padding: 2rem;
         }
         body.dark {
@@ -31,6 +32,7 @@
             max-width: 1400px;
             margin: 0 auto;
         }
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -44,12 +46,13 @@
             border-bottom-color: rgba(255,255,255,0.05);
         }
         .logo h1 {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 800;
             background: linear-gradient(135deg, #0f766e, #2c7da0);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            letter-spacing: -0.5px;
         }
         .logo p {
             font-size: 0.8rem;
@@ -58,23 +61,37 @@
         body.dark .logo p {
             color: #94a3b8;
         }
-        .btn-home {
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-btn {
             background: rgba(255,255,255,0.6);
             backdrop-filter: blur(4px);
             border: 1px solid rgba(0,0,0,0.1);
             border-radius: 2rem;
-            padding: 0.5rem 1rem;
-            text-decoration: none;
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             font-weight: 500;
             color: #1e293b;
+            transition: 0.2s;
         }
-        body.dark .btn-home {
+        body.dark .nav-btn {
             background: rgba(30,41,59,0.8);
             border-color: rgba(255,255,255,0.1);
             color: #e2e8f0;
+        }
+        .nav-btn.active {
+            background: #0f766e;
+            border-color: #0f766e;
+            color: white;
+        }
+        body.dark .nav-btn.active {
+            background: #2dd4bf;
+            color: #0f172a;
         }
         .theme-toggle {
             background: rgba(255,255,255,0.6);
@@ -93,6 +110,19 @@
             border-color: rgba(255,255,255,0.1);
             color: #e2e8f0;
         }
+        /* Seções */
+        .section {
+            display: none;
+            animation: fade 0.3s ease;
+        }
+        .section.active {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Cards */
         .card {
             background: white;
             border-radius: 1.5rem;
@@ -120,6 +150,41 @@
         .card-title i {
             color: #0f766e;
         }
+        /* Hero */
+        .hero {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        body.dark .hero {
+            background: #1e293b;
+        }
+        .hero h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .highlight {
+            background: #f1f5f9;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+        }
+        body.dark .highlight {
+            background: #0f172a;
+        }
+        .info-box {
+            background: #e6f4ea;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        body.dark .info-box {
+            background: #134e4a;
+        }
+        /* Formulários e tabelas */
         .config-grid {
             display: flex;
             flex-wrap: wrap;
@@ -316,6 +381,25 @@
         .chart-container {
             min-height: 400px;
         }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+        }
+        body.dark .feature-card {
+            background: #1e293b;
+        }
+        .feature-card i {
+            font-size: 2rem;
+            color: #0f766e;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -323,53 +407,102 @@
     <div class="header">
         <div class="logo">
             <h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1>
-            <p>Simulador profissional de apuração proporcional</p>
+            <p>Apuração proporcional profissional | Auditoria TSE</p>
         </div>
         <div style="display: flex; gap: 0.8rem;">
-            <a href="index.html" class="btn-home"><i class="fas fa-home"></i> Início</a>
+            <div class="nav-buttons">
+                <button class="nav-btn active" data-section="home"><i class="fas fa-home"></i> Início</button>
+                <button class="nav-btn" data-section="calculator"><i class="fas fa-calculator"></i> Calculadora</button>
+            </div>
             <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Modo Escuro</button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
-        <div class="config-grid">
-            <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" placeholder="Ex: 58252" value=""></div>
-            <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" placeholder="Ex: 15" value=""></div>
-            <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
-            <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
-            <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
+    <!-- Seção Início -->
+    <div id="homeSection" class="section active">
+        <div class="hero">
+            <h2>Como funcionam as eleições para <span style="color:#0f766e;">Vereadores e Deputados</span> no Brasil?</h2>
+            <p>O sistema proporcional de lista aberta é usado para eleger vereadores, deputados estaduais e federais. Entenda as regras e simule seus próprios cenários com nossa ferramenta.</p>
         </div>
-        <div id="qeInfo" class="qe-info">⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.</div>
+
+        <div class="cards-grid">
+            <div class="feature-card">
+                <i class="fas fa-calculator"></i>
+                <h3>1. Quociente Eleitoral (QE)</h3>
+                <p>QE = votos válidos ÷ cadeiras. Exemplo: 58.252 votos e 15 cadeiras → QE = 3.883 votos.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
+                <h3>2. Vagas Diretas</h3>
+                <p>Parte inteira da divisão dos votos do partido pelo QE. Ex: 7.662 ÷ 3.883 = 1 vaga direta.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>3. Distribuição das Sobras</h3>
+                <p>Partido precisa de ≥80% do QE e candidato com ≥20% do QE. Alocação pelo método das médias.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-user-check"></i>
+                <h3>4. Eleição dos Candidatos</h3>
+                <p>Os mais votados do partido (diretas) e, nas sobras, respeitando o mínimo individual.</p>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <i class="fas fa-lightbulb"></i>
+            <h3 style="margin-bottom: 0.5rem;">Simule você mesmo!</h3>
+            <p>Insira os dados da sua eleição e obtenha o resultado exato conforme a legislação.</p>
+            <button id="irParaCalculadoraBtn" class="btn" style="margin-top: 1rem;">Ir para Calculadora →</button>
+        </div>
+
+        <div class="footer">
+            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
+            <p>Baseado no Código Eleitoral Brasileiro (Lei nº 4.737/65 e alterações).</p>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
-        <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
-        <div class="table-wrapper">
-            <table class="partidos-table" id="partidosTable">
-                <thead>
-                    <tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr>
-                </thead>
-                <tbody id="partidosTbody"></tbody>
-            </table>
+    <!-- Seção Calculadora -->
+    <div id="calculatorSection" class="section">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
+            <div class="config-grid">
+                <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" placeholder="Ex: 58252" value=""></div>
+                <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" placeholder="Ex: 15" value=""></div>
+                <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
+                <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
+                <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
+            </div>
+            <div id="qeInfo" class="qe-info">⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.</div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
-        <div class="chart-container">
-            <canvas id="vagasChart" width="400" height="400"></canvas>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
+            <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
+            <div class="table-wrapper">
+                <table class="partidos-table" id="partidosTable">
+                    <thead>
+                        <tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr>
+                    </thead>
+                    <tbody id="partidosTbody"></tbody>
+                </table>
+            </div>
         </div>
-        <div style="margin-top: 1rem; text-align: right;">
-            <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
-        </div>
-        <div id="resultadoStats" class="result-stats"></div>
-    </div>
 
-    <div class="footer">
-        <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
-        <button id="limparCacheBtn" class="btn-sm btn-outline" style="margin-top: 0.5rem;"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
+            <div class="chart-container">
+                <canvas id="vagasChart" width="400" height="400"></canvas>
+            </div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
+            </div>
+            <div id="resultadoStats" class="result-stats"></div>
+        </div>
+
+        <div class="footer">
+            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
+            <button id="limparCacheBtn" class="btn-sm btn-outline" style="margin-top: 0.5rem;"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
+        </div>
     </div>
 </div>
 
@@ -667,6 +800,27 @@
         } catch (err) { showToast("Erro: " + err.message, "error"); return false; }
     }
 
+    // ==================== NAVEGAÇÃO ENTRE SEÇÕES ====================
+    function initNavigation() {
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = {
+            home: document.getElementById('homeSection'),
+            calculator: document.getElementById('calculatorSection')
+        };
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sectionId = btn.dataset.section;
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.values(sections).forEach(s => s.classList.remove('active'));
+                sections[sectionId].classList.add('active');
+            });
+        });
+        document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => {
+            document.querySelector('.nav-btn[data-section="calculator"]').click();
+        });
+    }
+
     // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', () => {
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
@@ -689,6 +843,7 @@
         document.getElementById('salvarCenarioBtn').addEventListener('click', () => salvarCenario());
         document.getElementById('gerarPdfBtn').addEventListener('click', () => gerarPDF());
         document.getElementById('limparCacheBtn').addEventListener('click', () => { if(confirm("Apagar todos os cenários salvos?")){ localStorage.removeItem('seuVotoCerto_cenarios'); carregarCenarios(); renderizarTabela(); atualizarResultados(); } });
+        initNavigation();
     });
 </script>
 </body>
