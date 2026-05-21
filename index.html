@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>SEU VOTO CERTO – Sistema Premium de Apuração Proporcional</title>
-    <!-- Font Awesome, Google Fonts, Chart.js, SheetJS (XLSX), jsPDF + html2canvas -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Plugin para exibir labels dentro do gráfico -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -108,7 +109,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 0.8rem;">
                 <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV/Excel</div>
                 <div><i class="fas fa-copy"></i> Múltiplos cenários</div>
-                <div><i class="fas fa-chart-simple"></i> Gráfico de distribuição</div>
+                <div><i class="fas fa-chart-simple"></i> Gráfico com cores exclusivas + labels (partido + cadeiras)</div>
                 <div><i class="fas fa-file-pdf"></i> Relatório PDF profissional</div>
                 <div><i class="fas fa-balance-scale"></i> Comparador de cenários</div>
                 <div><i class="fas fa-database"></i> Salvar localmente</div>
@@ -126,7 +127,8 @@
                 <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
                 <button id="exemploBtn" class="btn-outline btn"><i class="fas fa-database"></i> Exemplo Didático</button>
                 <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar Tudo</button>
-                <button id="salvarCenarioAtualBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Cenário</button>
+                <button id="salvarCenarioComPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Cenário (com PDF)</button>
+                <button id="salvarCenarioSemPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Apenas Cenário</button>
                 <button id="importarCSVBtn" class="btn-outline btn"><i class="fas fa-upload"></i> Importar CSV</button>
                 <button id="exportarCSVBtn" class="btn-outline btn"><i class="fas fa-download"></i> Exportar CSV</button>
             </div>
@@ -147,7 +149,7 @@
                 <div style="flex:2" id="resultadoStats"></div>
                 <div style="flex:1"><canvas id="vagasChart" width="400" height="300"></canvas></div>
             </div>
-            <div style="margin-top: 1rem; text-align: right;"><button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF</button></div>
+            <div style="margin-top: 1rem; text-align: right;"><button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (sem salvar)</button></div>
         </div>
     </div>
 
@@ -193,19 +195,27 @@
 </div>
 
 <script>
-    // ---------- MODELO DE DADOS GLOBAL ----------
-    let partidos = [];      // { nome, total (informado manualmente), candidatos: [{nome, votos}] }
+    // ---------- MODELO DE DADOS ----------
+    let partidos = [];
     let chartInstance = null;
-    let cenarios = [];      // { id, nome, data, partidos, totalVotos, numCadeiras }
+    let cenarios = [];
     let cenarioAtivoId = null;
 
-    // Função para verificar consistência (soma dos candidatos vs total informado)
+    // Cores distintas para gráfico (paleta extensa)
+    const colorPalette = [
+        '#0f766e', '#2c7da0', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
+        '#ec489a', '#06b6d4', '#84cc16', '#f97316', '#d946ef', '#14b8a6', '#f43f5e', 
+        '#6366f1', '#a855f7', '#eab308', '#22c55e', '#ef4444', '#3b82f6', '#0ea5e9', 
+        '#e11d48', '#c026d3', '#ea580c', '#16a34a', '#0284c7', '#9333ea', '#db2777'
+    ];
+
+    function getPartidoColor(index) {
+        return colorPalette[index % colorPalette.length];
+    }
+
     function verificarConsistenciaPartido(p) {
-        const somaCandidatos = p.candidatos.reduce((s,c)=>s+c.votos,0);
-        if (somaCandidatos > p.total) {
-            return { ok: false, soma: somaCandidatos };
-        }
-        return { ok: true, soma: somaCandidatos };
+        const soma = p.candidatos.reduce((s,c)=>s+c.votos,0);
+        return { ok: soma <= p.total, soma };
     }
 
     // Carregar cenários do localStorage
@@ -220,7 +230,6 @@
             cenarios = [];
         }
         if (cenarios.length === 0) {
-            // criar cenário padrão vazio
             const id = Date.now();
             cenarios.push({ id, nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: 10000, numCadeiras: 9 });
             cenarioAtivoId = id;
@@ -229,7 +238,6 @@
             document.getElementById('numCadeiras').value = 9;
             salvarCenarios();
         } else {
-            // carregar o primeiro cenário ou o último ativo
             let ativo = cenarios.find(c => c.id === cenarioAtivoId);
             if (!ativo) ativo = cenarios[0];
             cenarioAtivoId = ativo.id;
@@ -242,12 +250,14 @@
         atualizarListaCenarios();
         atualizarSelectComparador();
     }
+
     function salvarCenarios() {
         localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(cenarios));
         atualizarListaCenarios();
         atualizarSelectComparador();
     }
-    function salvarCenarioAtivo() {
+
+    function salvarCenarioAtivoSemPdf() {
         const idx = cenarios.findIndex(c => c.id === cenarioAtivoId);
         if (idx !== -1) {
             cenarios[idx].partidos = JSON.parse(JSON.stringify(partidos));
@@ -255,8 +265,33 @@
             cenarios[idx].numCadeiras = parseInt(document.getElementById('numCadeiras').value);
             cenarios[idx].data = new Date().toISOString();
             salvarCenarios();
+            alert("Cenário atualizado sem PDF.");
+        } else {
+            const nome = prompt("Nome do novo cenário:", "Cenário " + (cenarios.length+1));
+            if (!nome) return;
+            const id = Date.now();
+            cenarios.push({ id, nome, data: new Date().toISOString(), partidos: JSON.parse(JSON.stringify(partidos)), totalVotos: parseInt(document.getElementById('totalVotos').value), numCadeiras: parseInt(document.getElementById('numCadeiras').value) });
+            cenarioAtivoId = id;
+            salvarCenarios();
+            alert("Cenário salvo sem PDF.");
         }
     }
+
+    async function salvarCenarioComPdf() {
+        const gerou = await gerarPDF(true);
+        if (gerou !== false) {
+            const nome = prompt("Nome do cenário a salvar:", "Cenário " + (cenarios.length+1));
+            if (!nome) return;
+            const id = Date.now();
+            cenarios.push({ id, nome, data: new Date().toISOString(), partidos: JSON.parse(JSON.stringify(partidos)), totalVotos: parseInt(document.getElementById('totalVotos').value), numCadeiras: parseInt(document.getElementById('numCadeiras').value) });
+            cenarioAtivoId = id;
+            salvarCenarios();
+            alert("Cenário salvo com sucesso após geração do PDF.");
+        } else {
+            alert("PDF não foi gerado. Cenário não salvo.");
+        }
+    }
+
     function atualizarListaCenarios() {
         const container = document.getElementById('scenarioList');
         if (!container) return;
@@ -280,17 +315,16 @@
         }));
         document.querySelectorAll('.renomearCenario').forEach(btn => btn.addEventListener('click', (e) => {
             const id = parseInt(btn.dataset.id);
-            const novoNome = prompt('Novo nome do cenário:', cenarios.find(c=>c.id===id)?.nome);
+            const novoNome = prompt('Novo nome:', cenarios.find(c=>c.id===id)?.nome);
             if (novoNome) {
                 const c = cenarios.find(c=>c.id===id);
                 if (c) c.nome = novoNome;
                 salvarCenarios();
-                atualizarListaCenarios();
             }
         }));
         document.querySelectorAll('.deletarCenario').forEach(btn => btn.addEventListener('click', (e) => {
             const id = parseInt(btn.dataset.id);
-            if (confirm('Remover este cenário?')) {
+            if (confirm('Remover?')) {
                 cenarios = cenarios.filter(c=>c.id !== id);
                 if (cenarios.length === 0) {
                     const novoId = Date.now();
@@ -304,6 +338,7 @@
             }
         }));
     }
+
     function carregarCenarioPorId(id) {
         const c = cenarios.find(c=>c.id === id);
         if (c) {
@@ -313,10 +348,10 @@
             document.getElementById('numCadeiras').value = c.numCadeiras;
             renderizarTabela();
             atualizarResultados();
-            // mudar aba para calculadora
             document.querySelector('.tab-btn[data-tab="calculator"]').click();
         }
     }
+
     function atualizarSelectComparador() {
         const selectA = document.getElementById('compareA');
         const selectB = document.getElementById('compareB');
@@ -324,15 +359,16 @@
         selectA.innerHTML = '<option value="">Selecione</option>';
         selectB.innerHTML = '<option value="">Selecione</option>';
         for (let c of cenarios) {
-            const optA = document.createElement('option');
-            optA.value = c.id;
-            optA.text = `${c.nome} (${new Date(c.data).toLocaleDateString()})`;
-            selectA.appendChild(optA.cloneNode(true));
-            selectB.appendChild(optA);
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.text = `${c.nome} (${new Date(c.data).toLocaleDateString()})`;
+            selectA.appendChild(opt.cloneNode(true));
+            selectB.appendChild(opt);
         }
         selectA.addEventListener('change', () => compararCenarios());
         selectB.addEventListener('change', () => compararCenarios());
     }
+
     function compararCenarios() {
         const idA = parseInt(document.getElementById('compareA').value);
         const idB = parseInt(document.getElementById('compareB').value);
@@ -355,9 +391,7 @@
 
     // ---------- FUNÇÕES AUXILIARES ----------
     function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
-    // Não existe mais atualizarTotaisPartidos() automático. O total é manual.
 
-    // Renderização da tabela com edição independente
     function renderizarTabela() {
         const tbody = document.getElementById('partidosTbody');
         if (!tbody) return;
@@ -365,27 +399,26 @@
         for (let idx = 0; idx < partidos.length; idx++) {
             const p = partidos[idx];
             const tr = document.createElement('tr');
-            // Nome do partido
+            // Nome
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
-            inpNome.type = 'text'; inpNome.value = p.nome; inpNome.style.width = '100px'; inpNome.className = 'partido-nome';
-            inpNome.addEventListener('change', (e) => { p.nome = e.target.value.toUpperCase().substring(0,10); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); });
+            inpNome.type = 'text'; inpNome.value = p.nome; inpNome.style.width = '100px';
+            inpNome.addEventListener('change', (e) => { p.nome = e.target.value.toUpperCase().substring(0,10); renderizarTabela(); atualizarResultados(); });
             tdNome.appendChild(inpNome);
-            // Total do partido (editável manualmente)
+            // Total
             const tdTotal = document.createElement('td');
             const divTotal = document.createElement('div');
             divTotal.style.display = 'flex'; divTotal.style.alignItems = 'center'; divTotal.style.gap = '0.5rem';
             const inpTotal = document.createElement('input');
             inpTotal.type = 'number'; inpTotal.value = p.total; inpTotal.style.width = '100px';
-            inpTotal.addEventListener('change', (e) => { p.total = parseInt(e.target.value) || 0; renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); });
+            inpTotal.addEventListener('change', (e) => { p.total = parseInt(e.target.value) || 0; renderizarTabela(); atualizarResultados(); });
             divTotal.appendChild(inpTotal);
-            // Ícone de aviso se inconsistente
             const { ok, soma } = verificarConsistenciaPartido(p);
             if (!ok) {
-                const warningIcon = document.createElement('i');
-                warningIcon.className = 'fas fa-exclamation-triangle warning-icon';
-                warningIcon.title = `A soma dos candidatos (${soma}) excede o total informado (${p.total}). O cálculo usará o total informado.`;
-                divTotal.appendChild(warningIcon);
+                const warn = document.createElement('i');
+                warn.className = 'fas fa-exclamation-triangle warning-icon';
+                warn.title = `Soma dos candidatos (${soma}) excede total informado (${p.total}). O cálculo usará o total informado.`;
+                divTotal.appendChild(warn);
             }
             tdTotal.appendChild(divTotal);
             // Candidatos
@@ -393,13 +426,13 @@
             const container = document.createElement('div');
             for (let cidx = 0; cidx < p.candidatos.length; cidx++) {
                 const cand = p.candidatos[cidx];
-                const rowDiv = document.createElement('div'); rowDiv.className = 'candidato-row';
-                rowDiv.innerHTML = `
-                    <input type="text" value="${escapeHtml(cand.nome)}" class="cand-nome" data-pidx="${idx}" data-cidx="${cidx}" placeholder="Nome" style="width:120px;">
-                    <input type="number" value="${cand.votos}" class="cand-voto" data-pidx="${idx}" data-cidx="${cidx}" placeholder="Votos" style="width:90px;">
+                const row = document.createElement('div'); row.className = 'candidato-row';
+                row.innerHTML = `
+                    <input type="text" value="${escapeHtml(cand.nome)}" class="cand-nome" data-pidx="${idx}" data-cidx="${cidx}" style="width:120px;">
+                    <input type="number" value="${cand.votos}" class="cand-voto" data-pidx="${idx}" data-cidx="${cidx}" style="width:90px;">
                     <button class="remove-cand-btn btn-sm btn-outline" data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
                 `;
-                container.appendChild(rowDiv);
+                container.appendChild(row);
             }
             const addDiv = document.createElement('div'); addDiv.className = 'add-cand-form';
             addDiv.innerHTML = `<input type="text" id="newCandNome_${idx}" placeholder="Nome"><input type="number" id="newCandVotos_${idx}" placeholder="Votos" value="0"><button class="add-cand-btn btn-sm btn-outline" data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>`;
@@ -407,34 +440,59 @@
             tdCand.appendChild(container);
             // Ações
             const tdAcoes = document.createElement('td');
-            const btnRemover = document.createElement('button'); btnRemover.innerHTML = '<i class="fas fa-times-circle"></i>'; btnRemover.className = 'btn-sm btn-outline'; btnRemover.style.color = 'var(--danger)';
-            btnRemover.addEventListener('click', () => { partidos.splice(idx,1); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); });
-            tdAcoes.appendChild(btnRemover);
+            const btnDel = document.createElement('button');
+            btnDel.innerHTML = '<i class="fas fa-times-circle"></i>'; btnDel.className = 'btn-sm btn-outline'; btnDel.style.color = 'var(--danger)';
+            btnDel.addEventListener('click', () => { partidos.splice(idx,1); renderizarTabela(); atualizarResultados(); });
+            tdAcoes.appendChild(btnDel);
             tr.append(tdNome, tdTotal, tdCand, tdAcoes);
             tbody.appendChild(tr);
         }
-        // Eventos dos candidatos
-        document.querySelectorAll('.cand-nome').forEach(inp => { inp.addEventListener('change', (e) => { let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx); if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].nome=e.target.value; renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        document.querySelectorAll('.cand-voto').forEach(inp => { inp.addEventListener('change', (e) => { let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx); let val=parseInt(e.target.value)||0; if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].votos=val; renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        document.querySelectorAll('.remove-cand-btn').forEach(btn => { btn.addEventListener('click', (e) => { let pidx=parseInt(btn.dataset.pidx), cidx=parseInt(btn.dataset.cidx); if(partidos[pidx]) partidos[pidx].candidatos.splice(cidx,1); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
-        document.querySelectorAll('.add-cand-btn').forEach(btn => { btn.addEventListener('click', (e) => { let idx=parseInt(btn.dataset.idx); let nome=document.getElementById(`newCandNome_${idx}`).value.trim(); let votos=parseInt(document.getElementById(`newCandVotos_${idx}`).value)||0; if(!nome){alert('Digite o nome'); return;} partidos[idx].candidatos.push({nome, votos}); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }); });
+        // Eventos dinâmicos
+        document.querySelectorAll('.cand-nome').forEach(inp => inp.addEventListener('change', (e) => {
+            let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx);
+            if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].nome = e.target.value;
+            renderizarTabela(); atualizarResultados();
+        }));
+        document.querySelectorAll('.cand-voto').forEach(inp => inp.addEventListener('change', (e) => {
+            let pidx=parseInt(e.target.dataset.pidx), cidx=parseInt(e.target.dataset.cidx);
+            let val = parseInt(e.target.value)||0;
+            if(partidos[pidx]?.candidatos[cidx]) partidos[pidx].candidatos[cidx].votos = val;
+            renderizarTabela(); atualizarResultados();
+        }));
+        document.querySelectorAll('.remove-cand-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            let pidx=parseInt(btn.dataset.pidx), cidx=parseInt(btn.dataset.cidx);
+            if(partidos[pidx]) partidos[pidx].candidatos.splice(cidx,1);
+            renderizarTabela(); atualizarResultados();
+        }));
+        document.querySelectorAll('.add-cand-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            let idx = parseInt(btn.dataset.idx);
+            let nome = document.getElementById(`newCandNome_${idx}`).value.trim();
+            let votos = parseInt(document.getElementById(`newCandVotos_${idx}`).value)||0;
+            if(!nome) { alert('Digite o nome'); return; }
+            partidos[idx].candidatos.push({ nome, votos });
+            renderizarTabela(); atualizarResultados();
+        }));
     }
 
-    // Cálculo matemático (usa o total informado do partido, não a soma dos candidatos)
+    // Cálculo matemático
     function calcularResultadoComDados(partidosData, votosValidos, cadeiras) {
         if (!partidosData.length) return null;
         const QE = Math.floor(votosValidos / cadeiras);
         const limitePartido80 = Math.floor(0.8 * QE) + 1;
         const limiteCandidato20 = Math.floor(0.2 * QE) + 1;
         let vagasDiretas = {};
-        for (let p of partidosData) vagasDiretas[p.nome] = Math.floor(p.total / QE); // p.total é o valor manual
+        for (let p of partidosData) vagasDiretas[p.nome] = Math.floor(p.total / QE);
         let totalDiretas = Object.values(vagasDiretas).reduce((a,b)=>a+b,0);
         let sobrasRestantes = cadeiras - totalDiretas;
         let partidosAptos = partidosData.filter(p => p.total >= limitePartido80 && p.candidatos.some(c => c.votos >= limiteCandidato20));
         let eleitos = [];
         let jaEleitos = new Set();
-        const eleger = (partidoNome, candidatoNome, votos, tipo) => { let key=`${partidoNome}|${candidatoNome}`; if(!jaEleitos.has(key)){ jaEleitos.add(key); eleitos.push({ partido:partidoNome, candidato:candidatoNome, votos, tipo }); return true; } return false; };
-        // diretas
+        const eleger = (partidoNome, candidatoNome, votos, tipo) => {
+            let key = `${partidoNome}|${candidatoNome}`;
+            if (!jaEleitos.has(key)) { jaEleitos.add(key); eleitos.push({ partido:partidoNome, candidato:candidatoNome, votos, tipo }); return true; }
+            return false;
+        };
+        // Diretas
         for (let p of partidosData) {
             let vagas = vagasDiretas[p.nome] || 0;
             if(vagas===0) continue;
@@ -489,65 +547,48 @@
         for(let e of dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido))) statsHtml += `<li><strong>${e.partido}</strong> - ${e.candidato} (${e.votos} votos, ${e.tipo})</li>`;
         statsHtml += `</ul>`;
         document.getElementById('resultadoStats').innerHTML = statsHtml;
-        let labels = dados.partidos.filter(p=>p.total>0).map(p=>p.nome);
-        let valores = dados.partidos.filter(p=>p.total>0).map(p=>dados.vagasPorPartido[p.nome]?.total||0);
+
+        // Gráfico com cores distintas e labels
+        let partidosComVagas = dados.partidos.filter(p => p.total > 0);
+        let labels = partidosComVagas.map(p => p.nome);
+        let valores = partidosComVagas.map(p => dados.vagasPorPartido[p.nome]?.total || 0);
+        let backgroundColors = partidosComVagas.map((_, idx) => getPartidoColor(idx));
+        
         if(chartInstance) chartInstance.destroy();
         const ctx = document.getElementById('vagasChart').getContext('2d');
-        if(labels.length===0) return;
-        chartInstance = new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data:valores, backgroundColor:['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options:{ responsive:true } });
-    }
-
-    // Exportar CSV (com total manual e candidatos)
-    function exportarCSV() {
-        let csvRows = [["Partido","Total de Votos (informado)","Candidato","Votos"]];
-        for(let p of partidos){
-            if(p.candidatos.length===0) csvRows.push([p.nome, p.total, "", ""]);
-            for(let c of p.candidatos) csvRows.push([p.nome, p.total, c.nome, c.votos]);
-        }
-        const csvContent = csvRows.map(row=>row.join(",")).join("\n");
-        const blob = new Blob(["\uFEFF" + csvContent], {type:"text/csv;charset=utf-8;"});
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "seuvotocerto.csv";
-        link.click();
-    }
-    function importarCSV(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target.result;
-            const linhas = text.split(/\r?\n/);
-            const novosPartidos = [];
-            let partidoAtual = null;
-            for(let i=1; i<linhas.length; i++){
-                if(!linhas[i].trim()) continue;
-                const partes = linhas[i].split(",");
-                const nomePartido = partes[0];
-                const totalPartido = parseInt(partes[1]);
-                const nomeCand = partes[2];
-                const votosCand = parseInt(partes[3]);
-                if(!nomePartido) continue;
-                let p = novosPartidos.find(p=>p.nome===nomePartido);
-                if(!p){
-                    p = { nome: nomePartido, total: totalPartido || 0, candidatos: [] };
-                    novosPartidos.push(p);
+        if(labels.length === 0) return;
+        chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: { labels, datasets: [{ data: valores, backgroundColor: backgroundColors }] },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: (tooltipItem) => `${tooltipItem.label}: ${tooltipItem.raw} cadeira(s)` } },
+                    datalabels: {
+                        formatter: (value, context) => {
+                            const label = context.chart.data.labels[context.dataIndex];
+                            return `${label} ${value}`;
+                        },
+                        color: '#fff',
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                        borderRadius: 4,
+                        padding: { left: 6, right: 6, top: 4, bottom: 4 },
+                        font: { weight: 'bold', size: 11 },
+                        anchor: 'center',
+                        align: 'center',
+                        offset: 0
+                    }
                 }
-                if(nomeCand && !isNaN(votosCand)) p.candidatos.push({ nome: nomeCand, votos: votosCand });
-            }
-            if(novosPartidos.length){
-                partidos = novosPartidos;
-                renderizarTabela();
-                calcularEleicao();
-                salvarCenarioAtivo();
-                alert("Importado com sucesso!");
-            } else alert("Arquivo inválido ou vazio.");
-        };
-        reader.readAsText(file, "UTF-8");
+            },
+            plugins: [ChartDataLabels]
+        });
     }
 
-    // Gerar PDF real com jsPDF + autoTable
-    async function gerarPDF() {
+    // Gerar PDF (retorna Promise)
+    async function gerarPDF(silent = false) {
         const dados = calcularResultado();
-        if(!dados){ alert("Nenhum dado para gerar PDF"); return; }
+        if(!dados){ if(!silent) alert("Nenhum dado para gerar PDF"); return false; }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -556,10 +597,9 @@
         doc.setFontSize(10);
         doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
         doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
-        // Tabela de partidos
         doc.autoTable({
             startY: 48,
-            head: [['Partido','Votos (total)','Diretas','Sobras','Total']],
+            head: [['Partido','Total Votos','Diretas','Sobras','Total']],
             body: dados.partidos.map(p => {
                 let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
                 return [p.nome, p.total, v.diretas, v.sobras, v.total];
@@ -580,66 +620,93 @@
         });
         doc.setFontSize(8);
         doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
-        doc.save("relatorio_seu_voto_certo.pdf");
+        if (!silent) doc.save("relatorio_seu_voto_certo.pdf");
+        else doc.output('dataurl'); // só para consumir, sem salvar automaticamente
+        return true;
+    }
+
+    // Importar/Exportar
+    function exportarCSV() {
+        let rows = [["Partido","Total Votos","Candidato","Votos"]];
+        for(let p of partidos){
+            if(p.candidatos.length===0) rows.push([p.nome, p.total, "", ""]);
+            for(let c of p.candidatos) rows.push([p.nome, p.total, c.nome, c.votos]);
+        }
+        const csv = rows.map(r=>r.join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csv], {type:"text/csv"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "seuvotocerto.csv";
+        link.click();
+    }
+
+    function importarCSV(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const linhas = text.split(/\r?\n/);
+            const novos = [];
+            for(let i=1; i<linhas.length; i++){
+                if(!linhas[i].trim()) continue;
+                const partes = linhas[i].split(",");
+                const nomePartido = partes[0];
+                const totalPartido = parseInt(partes[1]);
+                const nomeCand = partes[2];
+                const votosCand = parseInt(partes[3]);
+                if(!nomePartido) continue;
+                let p = novos.find(p=>p.nome===nomePartido);
+                if(!p){
+                    p = { nome: nomePartido, total: totalPartido || 0, candidatos: [] };
+                    novos.push(p);
+                }
+                if(nomeCand && !isNaN(votosCand)) p.candidatos.push({ nome: nomeCand, votos: votosCand });
+            }
+            if(novos.length){
+                partidos = novos;
+                renderizarTabela();
+                atualizarResultados();
+                alert("Importado!");
+            } else alert("CSV inválido.");
+        };
+        reader.readAsText(file, "UTF-8");
     }
 
     // Eventos e inicialização
-    function calcularEleicao() { atualizarResultados(); salvarCenarioAtivo(); }
     function carregarExemplo() {
         partidos = [
-            { nome: 'PSD', total: 7662, candidatos:[{nome:'Candidato A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
-            { nome: 'PP', total: 6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
-            { nome: 'PDT', total: 5578, candidatos:[{nome:'C1',votos:832}] },
-            { nome: 'PSB', total: 5507, candidatos:[{nome:'D1',votos:1102}] },
-            { nome: 'PODEMOS', total: 5116, candidatos:[{nome:'E1',votos:2135},{nome:'E2',votos:1024}] },
-            { nome: 'PL', total: 5087, candidatos:[{nome:'F1',votos:858}] },
-            { nome: 'UNIÃO', total: 4905, candidatos:[{nome:'G1',votos:1212},{nome:'G2',votos:943},{nome:'G3',votos:853}] },
-            { nome: 'AVANTE', total: 3408, candidatos:[{nome:'H1',votos:1210}] }
+            { nome: 'PSD', total:7662, candidatos:[{nome:'Candidato A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
+            { nome: 'PP', total:6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
+            { nome: 'PDT', total:5578, candidatos:[{nome:'C1',votos:832}] },
+            { nome: 'PSB', total:5507, candidatos:[{nome:'D1',votos:1102}] },
+            { nome: 'PODEMOS', total:5116, candidatos:[{nome:'E1',votos:2135},{nome:'E2',votos:1024}] },
+            { nome: 'PL', total:5087, candidatos:[{nome:'F1',votos:858}] },
+            { nome: 'UNIÃO', total:4905, candidatos:[{nome:'G1',votos:1212},{nome:'G2',votos:943},{nome:'G3',votos:853}] },
+            { nome: 'AVANTE', total:3408, candidatos:[{nome:'H1',votos:1210}] }
         ];
         document.getElementById('totalVotos').value = 58252;
         document.getElementById('numCadeiras').value = 15;
         renderizarTabela();
-        calcularEleicao();
-    }
-    function resetarPartidos() { partidos = []; renderizarTabela(); calcularEleicao(); }
-    function adicionarPartido() { let nome = prompt('Nome do partido:'); if(nome) partidos.push({ nome: nome.toUpperCase().substring(0,10), total: 0, candidatos: [] }); renderizarTabela(); calcularEleicao(); salvarCenarioAtivo(); }
-    function salvarNovoCenario() {
-        const nome = prompt("Nome do cenário:", `Cenário ${cenarios.length+1}`);
-        if(!nome) return;
-        const id = Date.now();
-        cenarios.push({ id, nome, data: new Date().toISOString(), partidos: JSON.parse(JSON.stringify(partidos)), totalVotos: parseInt(document.getElementById('totalVotos').value), numCadeiras: parseInt(document.getElementById('numCadeiras').value) });
-        salvarCenarios();
-        alert("Cenário salvo!");
+        atualizarResultados();
     }
 
-    // Tabs
-    const tabs = document.querySelectorAll('.tab-btn');
-    const panes = document.querySelectorAll('.tab-pane');
-    tabs.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabId = btn.dataset.tab;
-            tabs.forEach(b=>b.classList.remove('active'));
-            panes.forEach(p=>p.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(`${tabId}Pane`).classList.add('active');
-            if(tabId === 'compare') atualizarSelectComparador();
-            if(tabId === 'scenarios') atualizarListaCenarios();
-        });
-    });
+    function resetarPartidos() { partidos = []; renderizarTabela(); atualizarResultados(); }
+    function adicionarPartido() { let nome = prompt('Nome do partido:'); if(nome) partidos.push({ nome: nome.toUpperCase().substring(0,10), total: 0, candidatos: [] }); renderizarTabela(); atualizarResultados(); }
+    function novoCenario() { salvarCenarioAtivoSemPdf(); }
 
-    document.getElementById('irParaCalculadoraBtn')?.addEventListener('click', ()=>document.querySelector('.tab-btn[data-tab="calculator"]').click());
-    document.getElementById('calcularBtn').addEventListener('click', calcularEleicao);
+    document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="calculator"]').click());
+    document.getElementById('calcularBtn').addEventListener('click', atualizarResultados);
     document.getElementById('exemploBtn').addEventListener('click', carregarExemplo);
     document.getElementById('resetPartidosBtn').addEventListener('click', resetarPartidos);
     document.getElementById('novoPartidoBtn').addEventListener('click', adicionarPartido);
-    document.getElementById('salvarCenarioAtualBtn').addEventListener('click', salvarNovoCenario);
+    document.getElementById('salvarCenarioComPdfBtn').addEventListener('click', salvarCenarioComPdf);
+    document.getElementById('salvarCenarioSemPdfBtn').addEventListener('click', salvarCenarioAtivoSemPdf);
+    document.getElementById('importarCSVBtn').addEventListener('click', () => { let input = document.createElement('input'); input.type='file'; input.accept='.csv'; input.onchange=e=>importarCSV(e.target.files[0]); input.click(); });
     document.getElementById('exportarCSVBtn').addEventListener('click', exportarCSV);
-    document.getElementById('importarCSVBtn').addEventListener('click', ()=> { let input = document.createElement('input'); input.type='file'; input.accept='.csv'; input.onchange=e=>importarCSV(e.target.files[0]); input.click(); });
-    document.getElementById('gerarPdfBtn').addEventListener('click', gerarPDF);
-    document.getElementById('novoCenarioBtn').addEventListener('click', salvarNovoCenario);
-    document.getElementById('limparCacheBtn').addEventListener('click', ()=>{ if(confirm("Apagar todos os cenários?")){ localStorage.removeItem('seuVotoCerto_cenarios'); location.reload(); } });
+    document.getElementById('gerarPdfBtn').addEventListener('click', () => gerarPDF(false));
+    document.getElementById('novoCenarioBtn').addEventListener('click', novoCenario);
+    document.getElementById('limparCacheBtn').addEventListener('click', () => { if(confirm("Apagar todos os cenários?")){ localStorage.removeItem('seuVotoCerto_cenarios'); location.reload(); } });
     document.getElementById('themeToggle').addEventListener('click', () => { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); });
-    if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark');
+    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
     carregarCenarios();
 </script>
 </body>
