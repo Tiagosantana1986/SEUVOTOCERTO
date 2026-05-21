@@ -3,377 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEU VOTO CERTO – Calculadora de Eleições Proporcionais (Brasil)</title>
+    <title>SEU VOTO CERTO - Sistema Profissional de Apuração Proporcional</title>
+    <!-- Font Awesome 6 (gratuito) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: #eef2f5;
             margin: 0;
-            padding: 24px 20px;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-body);
+            transition: background 0.3s, color 0.2s;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Temas */
+        :root {
+            --bg-body: #f0f4f8;
+            --bg-card: #ffffff;
+            --text-primary: #1a2c3e;
+            --text-secondary: #2c3e50;
+            --border: #e2e8f0;
+            --accent: #0f766e;
+            --accent-hover: #0d5c56;
+            --accent-light: #ccfbf1;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #059669;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --accent: #2dd4bf;
+            --accent-hover: #14b8a6;
+            --accent-light: #134e4a;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 28px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-            padding: 24px 28px;
         }
-        h1 {
-            font-size: 2rem;
-            margin: 0 0 0.25rem;
-            color: #0a2b3e;
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #2c7da0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .logo p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            display: flex;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
             display: flex;
             align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            border-left: 4px solid var(--accent);
+            padding-left: 0.75rem;
         }
-        h1 .nome-programa {
-            background: #1e7e6c;
-            color: white;
-            padding: 6px 20px;
-            border-radius: 60px;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-        }
-        h1 small {
-            font-size: 0.75rem;
-            background: #1e4663;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 60px;
-            font-weight: normal;
-        }
-        .subtitulo {
-            color: #2c5a7a;
-            border-left: 4px solid #2c7da0;
-            padding-left: 16px;
-            margin: 16px 0 24px;
-            font-weight: 500;
-        }
-        .config-panel {
-            background: #f4f9fe;
-            border-radius: 24px;
-            padding: 20px 24px;
-            margin-bottom: 32px;
+
+        /* Config panel */
+        .config-grid {
             display: flex;
             flex-wrap: wrap;
+            gap: 1.5rem;
             align-items: flex-end;
-            gap: 24px;
-            border: 1px solid #dae9f2;
         }
-        .config-item {
+        .input-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 0.4rem;
+            min-width: 160px;
         }
-        .config-item label {
-            font-weight: 700;
-            color: #1f5777;
+        .input-group label {
+            font-weight: 500;
             font-size: 0.8rem;
+            color: var(--text-secondary);
         }
-        .config-item input {
-            padding: 10px 14px;
+        .input-group input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            color: var(--text-primary);
             font-size: 1rem;
-            width: 200px;
-            border: 1px solid #c2d6e4;
-            border-radius: 20px;
-        }
-        button {
-            background: #2c7da0;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 40px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
             transition: 0.2s;
         }
-        button:hover {
-            background: #1f5e7a;
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-light);
+        }
+
+        /* Botões */
+        .btn {
+            border: none;
+            border-radius: 2rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent);
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        .btn-danger {
+            background: var(--danger);
+        }
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+        }
+        .btn:hover {
             transform: scale(0.97);
+            filter: brightness(1.05);
         }
-        .btn-primary { background: #1e7e6c; }
-        .btn-outline { background: #eef2f5; color: #1f5777; border: 1px solid #c2d6e4; }
-        .btn-danger { background: #bc5a4a; }
-        .btn-sm { padding: 6px 14px; font-size: 0.75rem; }
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            gap: 14px;
-        }
+
+        /* Tabela de partidos */
         .table-wrapper {
             overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid #dcf0fa;
-            margin-bottom: 28px;
+            border-radius: 1rem;
         }
         .partidos-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 900px;
         }
         .partidos-table th, .partidos-table td {
-            border: 1px solid #d4e2ec;
-            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0.8rem;
+            text-align: left;
             vertical-align: top;
         }
         .partidos-table th {
-            background: #eef4fc;
-            font-weight: 700;
-            color: #1f4e6e;
-            text-align: center;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
-        .col-partido { width: 90px; text-align: center; }
-        .col-total-partido { width: 120px; text-align: center; }
-        .col-candidatos { min-width: 380px; }
-        .col-acoes { width: 80px; text-align: center; }
         .candidato-row {
             display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            background: #fefefe;
-            padding: 6px 8px;
-            border-radius: 16px;
-            border: 1px solid #ecf3f9;
+            margin-bottom: 0.6rem;
+            background: var(--bg-body);
+            padding: 0.4rem;
+            border-radius: 1rem;
         }
-        .candidato-nome { flex: 2; }
-        .candidato-nome input { width: 100%; padding: 6px 10px; border-radius: 40px; border: 1px solid #cbdde9; }
-        .candidato-voto { width: 110px; }
-        .candidato-voto input { width: 100%; padding: 6px 10px; border-radius: 40px; border: 1px solid #cbdde9; text-align: right; }
-        .btn-remove-cand {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: #bc5a4a;
-            cursor: pointer;
+        .candidato-nome input, .candidato-voto input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            width: 140px;
+            color: var(--text-primary);
         }
         .add-cand-form {
             display: flex;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
             flex-wrap: wrap;
         }
-        .add-cand-form input { flex: 1; padding: 6px 10px; border-radius: 40px; border: 1px solid #cbdde9; }
-        .resultados-area {
-            background: #eef3fa;
-            border-radius: 24px;
-            padding: 20px 28px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            white-space: pre-wrap;
-            max-height: 600px;
-            overflow-y: auto;
-            border: 1px solid #cfe0ec;
-            margin-top: 20px;
+
+        /* Resultados */
+        .result-dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
         }
-        footer {
-            text-align: center;
+        .result-stats {
+            flex: 2;
+            min-width: 250px;
+        }
+        .result-chart {
+            flex: 1;
+            min-width: 250px;
+        }
+        .badge {
+            background: var(--accent-light);
+            padding: 0.2rem 0.6rem;
+            border-radius: 2rem;
             font-size: 0.7rem;
-            margin-top: 28px;
-            color: #6a8eaa;
+            color: var(--accent);
+        }
+        .tooltip-icon {
+            cursor: help;
+            border-bottom: 1px dashed;
+            margin-left: 0.3rem;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .card { padding: 1rem; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>
-        <span class="nome-programa">🗳️ SEU VOTO CERTO</span>
-        <small>Eleições proporcionais – vereadores / deputados</small>
-    </h1>
-    <div class="subtitulo">✔️ Informe o TOTAL de votos de cada partido + apenas os candidatos com chances reais. O programa preenche TODAS as vagas de sobra com candidatos que tenham ≥20% do QE, sem duplicação de eleitos.</div>
-
-    <div class="config-panel">
-        <div class="config-item">
-            <label>🗳️ Votos válidos totais</label>
-            <input type="number" id="totalVotos" value="58252">
+    <div class="header">
+        <div class="logo">
+            <h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1>
+            <p>Sistema profissional de apuração proporcional | Vereadores e Deputados</p>
         </div>
-        <div class="config-item">
-            <label>🪑 Número de cadeiras</label>
-            <input type="number" id="numCadeiras" value="15">
+        <div>
+            <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Modo Escuro</button>
         </div>
-        <button id="calcularBtn" class="btn-primary">📊 Calcular Eleição</button>
-        <button id="exemploBtn" class="btn-outline">📋 Carregar Exemplo Didático</button>
-        <button id="resetPartidosBtn" class="btn-outline btn-danger">🗑️ Remover Todos Partidos</button>
-        <button id="gerarRelatorioBtn" class="btn-outline">📄 Relatório Oficial (1 página)</button>
     </div>
 
-    <div class="toolbar">
-        <button id="novoPartidoBtn" class="btn-sm">➕ Adicionar Partido</button>
-        <span style="font-size:0.75rem;">* Partidos com total &lt; 80% do QE são excluídos das sobras</span>
+    <!-- Configuração geral -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
+        <div class="config-grid">
+            <div class="input-group">
+                <label>🗳️ Votos válidos totais <span class="tooltip-icon" title="Soma de todos os votos nominais + legendas">ⓘ</span></label>
+                <input type="number" id="totalVotos" value="58252">
+            </div>
+            <div class="input-group">
+                <label>🪑 Número de cadeiras</label>
+                <input type="number" id="numCadeiras" value="15">
+            </div>
+            <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
+            <button id="exemploBtn" class="btn-outline btn"><i class="fas fa-database"></i> Exemplo Didático</button>
+            <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar Tudo</button>
+            <button id="salvarSimulacaoBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Simulação</button>
+            <button id="carregarSimulacaoBtn" class="btn-outline btn"><i class="fas fa-upload"></i> Carregar</button>
+        </div>
     </div>
 
-    <div class="table-wrapper">
-        <table class="partidos-table" id="partidosTable">
-            <thead>
-                <tr><th class="col-partido">Partido</th><th class="col-total-partido">Total de Votos (informado)</th><th class="col-candidatos">Candidatos (somente os relevantes)</th><th class="col-acoes">Ações</th></tr>
-            </thead>
-            <tbody id="partidosTbody"></tbody>
-        </table>
+    <!-- Tabela de partidos e candidatos -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos <span class="badge">Apenas os com chances reais</span></div>
+        <div style="margin-bottom: 1rem;">
+            <button id="novoPartidoBtn" class="btn-sm btn-outline"><i class="fas fa-plus"></i> Adicionar Partido</button>
+        </div>
+        <div class="table-wrapper">
+            <table class="partidos-table" id="partidosTable">
+                <thead>
+                    <tr><th>Partido</th><th>Total de Votos</th><th>Candidatos</th><th style="width: 80px">Ações</th></tr>
+                </thead>
+                <tbody id="partidosTbody"></tbody>
+            </table>
+        </div>
     </div>
 
-    <div id="resultados" class="resultados-area">
-        ⚡ Clique em "Calcular Eleição".
+    <!-- Resultados e gráfico -->
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-pie"></i> Resultado da Apuração</div>
+        <div id="resultadoArea" class="result-dashboard">
+            <div class="result-stats" id="resultadoStats"></div>
+            <div class="result-chart"><canvas id="vagasChart" width="400" height="300"></canvas></div>
+        </div>
+        <div style="margin-top: 1rem; text-align: right;">
+            <button id="gerarRelatorioBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar Relatório Oficial (PDF)</button>
+        </div>
     </div>
-    <footer>🔍 <strong>SEU VOTO CERTO</strong> – Algoritmo corrigido: cada candidato eleito aparece uma única vez. Todas as sobras são preenchidas. Clique em "Relatório Oficial (1 página)" para gerar documento compacto.</footer>
 </div>
 
 <script>
-    // Estrutura: cada partido tem nome, total (informado), e lista de candidatos
-    let partidos = [];
+    // ---------- MODELO DE DADOS ----------
+    let partidos = []; // cada um: { nome, total, candidatos: [{nome, votos}] }
 
-    function renderizarTabela() {
-        const tbody = document.getElementById('partidosTbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        for (let idx = 0; idx < partidos.length; idx++) {
-            const p = partidos[idx];
-            const tr = document.createElement('tr');
-            
-            const tdNome = document.createElement('td');
-            tdNome.className = 'col-partido';
-            const inpNome = document.createElement('input');
-            inpNome.type = 'text';
-            inpNome.value = p.nome;
-            inpNome.style.width = '80px';
-            inpNome.style.textAlign = 'center';
-            inpNome.addEventListener('change', (e) => {
-                p.nome = e.target.value.toUpperCase().substring(0, 8);
-                renderizarTabela();
-            });
-            tdNome.appendChild(inpNome);
-            
-            const tdTotal = document.createElement('td');
-            tdTotal.className = 'col-total-partido';
-            const inpTotal = document.createElement('input');
-            inpTotal.type = 'number';
-            inpTotal.value = p.total;
-            inpTotal.style.width = '100px';
-            inpTotal.style.textAlign = 'center';
-            inpTotal.addEventListener('change', (e) => {
-                let val = parseInt(e.target.value);
-                if (isNaN(val)) val = 0;
-                p.total = val;
-                renderizarTabela();
-            });
-            tdTotal.appendChild(inpTotal);
-            
-            const tdCand = document.createElement('td');
-            tdCand.className = 'col-candidatos';
-            const container = document.createElement('div');
-            container.className = 'candidatos-container';
-            
-            for (let cidx = 0; cidx < p.candidatos.length; cidx++) {
-                const cand = p.candidatos[cidx];
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'candidato-row';
-                rowDiv.innerHTML = `
-                    <div class="candidato-nome"><input type="text" value="${escapeHtml(cand.nome)}" class="cand-nome" data-pidx="${idx}" data-cidx="${cidx}"></div>
-                    <div class="candidato-voto"><input type="number" value="${cand.votos}" class="cand-voto" data-pidx="${idx}" data-cidx="${cidx}" step="1"></div>
-                    <button class="btn-remove-cand" data-pidx="${idx}" data-cidx="${cidx}">🗑️</button>
-                `;
-                container.appendChild(rowDiv);
-            }
-            const addDiv = document.createElement('div');
-            addDiv.className = 'add-cand-form';
-            addDiv.innerHTML = `
-                <input type="text" placeholder="Nome do candidato" id="newCandNome_${idx}">
-                <input type="number" placeholder="Votos" id="newCandVotos_${idx}" value="0">
-                <button class="btn-sm add-cand-btn" data-idx="${idx}">+ Adicionar</button>
-            `;
-            container.appendChild(addDiv);
-            tdCand.appendChild(container);
-            
-            const tdAcoes = document.createElement('td');
-            tdAcoes.className = 'col-acoes';
-            const btnRemover = document.createElement('button');
-            btnRemover.innerText = 'Remover';
-            btnRemover.className = 'btn-sm';
-            btnRemover.style.background = '#bc5a4a';
-            btnRemover.addEventListener('click', () => {
-                partidos.splice(idx, 1);
-                renderizarTabela();
-            });
-            tdAcoes.appendChild(btnRemover);
-            
-            tr.appendChild(tdNome);
-            tr.appendChild(tdTotal);
-            tr.appendChild(tdCand);
-            tr.appendChild(tdAcoes);
-            tbody.appendChild(tr);
-        }
-        
-        document.querySelectorAll('.cand-nome').forEach(inp => {
-            inp.removeEventListener('change', handleNomeChange);
-            inp.addEventListener('change', handleNomeChange);
-        });
-        document.querySelectorAll('.cand-voto').forEach(inp => {
-            inp.removeEventListener('change', handleVotoChange);
-            inp.addEventListener('change', handleVotoChange);
-        });
-        document.querySelectorAll('.btn-remove-cand').forEach(btn => {
-            btn.removeEventListener('click', handleRemoveCand);
-            btn.addEventListener('click', handleRemoveCand);
-        });
-        document.querySelectorAll('.add-cand-btn').forEach(btn => {
-            btn.removeEventListener('click', handleAddCand);
-            btn.addEventListener('click', handleAddCand);
-        });
-    }
-    
-    function handleNomeChange(e) {
-        const pidx = parseInt(e.target.dataset.pidx);
-        const cidx = parseInt(e.target.dataset.cidx);
-        if (partidos[pidx] && partidos[pidx].candidatos[cidx]) {
-            partidos[pidx].candidatos[cidx].nome = e.target.value;
-        }
-        renderizarTabela();
-    }
-    
-    function handleVotoChange(e) {
-        const pidx = parseInt(e.target.dataset.pidx);
-        const cidx = parseInt(e.target.dataset.cidx);
-        let val = parseInt(e.target.value);
-        if (isNaN(val)) val = 0;
-        if (partidos[pidx] && partidos[pidx].candidatos[cidx]) {
-            partidos[pidx].candidatos[cidx].votos = val;
-        }
-        renderizarTabela();
-    }
-    
-    function handleRemoveCand(e) {
-        const pidx = parseInt(e.target.dataset.pidx);
-        const cidx = parseInt(e.target.dataset.cidx);
-        if (partidos[pidx]) {
-            partidos[pidx].candidatos.splice(cidx, 1);
-            renderizarTabela();
-        }
-    }
-    
-    function handleAddCand(e) {
-        const idx = parseInt(e.target.dataset.idx);
-        const nomeInput = document.getElementById(`newCandNome_${idx}`);
-        const votosInput = document.getElementById(`newCandVotos_${idx}`);
-        const nome = nomeInput ? nomeInput.value.trim() : '';
-        let votos = parseInt(votosInput ? votosInput.value : 0);
-        if (isNaN(votos)) votos = 0;
-        if (nome === '') {
-            alert('Digite o nome do candidato');
-            return;
-        }
-        if (partidos[idx]) {
-            partidos[idx].candidatos.push({ nome: nome, votos: votos });
-            renderizarTabela();
-        }
-    }
-    
+    // Utilitários
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -383,202 +331,350 @@
             return m;
         });
     }
-    
-    function obterResultadoEleicao() {
+
+    // Recalcular total do partido (soma dos candidatos)
+    function atualizarTotaisPartidos() {
+        for (let p of partidos) {
+            let soma = 0;
+            for (let c of p.candidatos) soma += c.votos;
+            p.total = soma;
+        }
+    }
+
+    // Renderização da tabela de partidos (com inputs dinâmicos)
+    function renderizarTabela() {
+        const tbody = document.getElementById('partidosTbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        for (let idx = 0; idx < partidos.length; idx++) {
+            const p = partidos[idx];
+            const tr = document.createElement('tr');
+            // Nome do partido
+            const tdNome = document.createElement('td');
+            const inpNome = document.createElement('input');
+            inpNome.type = 'text';
+            inpNome.value = p.nome;
+            inpNome.style.width = '100px';
+            inpNome.style.borderRadius = '2rem';
+            inpNome.style.padding = '0.3rem 0.8rem';
+            inpNome.addEventListener('change', (e) => {
+                p.nome = e.target.value.toUpperCase().substring(0, 10);
+                renderizarTabela();
+            });
+            tdNome.appendChild(inpNome);
+            // Total do partido (editável manualmente)
+            const tdTotal = document.createElement('td');
+            const inpTotal = document.createElement('input');
+            inpTotal.type = 'number';
+            inpTotal.value = p.total;
+            inpTotal.style.width = '100px';
+            inpTotal.style.borderRadius = '2rem';
+            inpTotal.style.padding = '0.3rem 0.8rem';
+            inpTotal.addEventListener('change', (e) => {
+                let val = parseInt(e.target.value);
+                if (isNaN(val)) val = 0;
+                p.total = val;
+                renderizarTabela();
+            });
+            tdTotal.appendChild(inpTotal);
+            // Candidatos
+            const tdCand = document.createElement('td');
+            const container = document.createElement('div');
+            for (let cidx = 0; cidx < p.candidatos.length; cidx++) {
+                const cand = p.candidatos[cidx];
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'candidato-row';
+                rowDiv.innerHTML = `
+                    <div class="candidato-nome"><input type="text" value="${escapeHtml(cand.nome)}" class="cand-nome" data-pidx="${idx}" data-cidx="${cidx}" placeholder="Nome"></div>
+                    <div class="candidato-voto"><input type="number" value="${cand.votos}" class="cand-voto" data-pidx="${idx}" data-cidx="${cidx}" placeholder="Votos"></div>
+                    <button class="remove-cand-btn btn-sm btn-outline" data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(rowDiv);
+            }
+            // Formulário add candidato
+            const addDiv = document.createElement('div');
+            addDiv.className = 'add-cand-form';
+            addDiv.innerHTML = `
+                <input type="text" id="newCandNome_${idx}" placeholder="Nome do candidato">
+                <input type="number" id="newCandVotos_${idx}" placeholder="Votos" value="0">
+                <button class="add-cand-btn btn-sm btn-outline" data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>
+            `;
+            container.appendChild(addDiv);
+            tdCand.appendChild(container);
+            // Ações remover partido
+            const tdAcoes = document.createElement('td');
+            const btnRemoverPartido = document.createElement('button');
+            btnRemoverPartido.innerHTML = '<i class="fas fa-times-circle"></i>';
+            btnRemoverPartido.className = 'btn-sm btn-outline';
+            btnRemoverPartido.style.color = 'var(--danger)';
+            btnRemoverPartido.addEventListener('click', () => {
+                partidos.splice(idx, 1);
+                renderizarTabela();
+                calcularEleicao(); // atualiza resultados após remover
+            });
+            tdAcoes.appendChild(btnRemoverPartido);
+            tr.appendChild(tdNome);
+            tr.appendChild(tdTotal);
+            tr.appendChild(tdCand);
+            tr.appendChild(tdAcoes);
+            tbody.appendChild(tr);
+        }
+        // Atrelar eventos de candidatos
+        document.querySelectorAll('.cand-nome').forEach(inp => {
+            inp.removeEventListener('change', handleNomeChange);
+            inp.addEventListener('change', handleNomeChange);
+        });
+        document.querySelectorAll('.cand-voto').forEach(inp => {
+            inp.removeEventListener('change', handleVotoChange);
+            inp.addEventListener('change', handleVotoChange);
+        });
+        document.querySelectorAll('.remove-cand-btn').forEach(btn => {
+            btn.removeEventListener('click', handleRemoveCand);
+            btn.addEventListener('click', handleRemoveCand);
+        });
+        document.querySelectorAll('.add-cand-btn').forEach(btn => {
+            btn.removeEventListener('click', handleAddCand);
+            btn.addEventListener('click', handleAddCand);
+        });
+        atualizarTotaisPartidos();
+    }
+
+    function handleNomeChange(e) {
+        const pidx = parseInt(e.target.dataset.pidx);
+        const cidx = parseInt(e.target.dataset.cidx);
+        if (partidos[pidx] && partidos[pidx].candidatos[cidx]) {
+            partidos[pidx].candidatos[cidx].nome = e.target.value;
+        }
+        renderizarTabela();
+        calcularEleicao();
+    }
+    function handleVotoChange(e) {
+        const pidx = parseInt(e.target.dataset.pidx);
+        const cidx = parseInt(e.target.dataset.cidx);
+        let val = parseInt(e.target.value);
+        if (isNaN(val)) val = 0;
+        if (partidos[pidx] && partidos[pidx].candidatos[cidx]) {
+            partidos[pidx].candidatos[cidx].votos = val;
+        }
+        atualizarTotaisPartidos();
+        renderizarTabela();
+        calcularEleicao();
+    }
+    function handleRemoveCand(e) {
+        const pidx = parseInt(e.target.dataset.pidx);
+        const cidx = parseInt(e.target.dataset.cidx);
+        if (partidos[pidx]) {
+            partidos[pidx].candidatos.splice(cidx, 1);
+            atualizarTotaisPartidos();
+            renderizarTabela();
+            calcularEleicao();
+        }
+    }
+    function handleAddCand(e) {
+        const idx = parseInt(e.target.dataset.idx);
+        const nomeInput = document.getElementById(`newCandNome_${idx}`);
+        const votosInput = document.getElementById(`newCandVotos_${idx}`);
+        const nome = nomeInput ? nomeInput.value.trim() : '';
+        let votos = parseInt(votosInput ? votosInput.value : 0);
+        if (isNaN(votos)) votos = 0;
+        if (nome === '') { alert('Digite o nome do candidato'); return; }
+        if (partidos[idx]) {
+            partidos[idx].candidatos.push({ nome, votos });
+            atualizarTotaisPartidos();
+            renderizarTabela();
+            calcularEleicao();
+        }
+    }
+
+    // ---------- LÓGICA ELEITORAL (cálculo) ----------
+    function calcularResultado() {
         const votosValidos = parseInt(document.getElementById('totalVotos').value);
         const cadeiras = parseInt(document.getElementById('numCadeiras').value);
         if (isNaN(votosValidos) || votosValidos <= 0 || isNaN(cadeiras) || cadeiras <= 0) return null;
         const QE = Math.floor(votosValidos / cadeiras);
         const limitePartido80 = Math.floor(0.8 * QE) + 1;
         const limiteCandidato20 = Math.floor(0.2 * QE) + 1;
-        
+        // vagas diretas
         let vagasDiretas = {};
         for (let p of partidos) vagasDiretas[p.nome] = Math.floor(p.total / QE);
         let totalDiretas = Object.values(vagasDiretas).reduce((a,b)=>a+b,0);
         let sobrasRestantes = cadeiras - totalDiretas;
-        
+        // partidos aptos às sobras
         let partidosAptos = [];
         for (let p of partidos) {
             if (p.total >= limitePartido80 && p.candidatos.some(c => c.votos >= limiteCandidato20))
                 partidosAptos.push(p);
         }
-        
         let eleitos = [];
-        let candidatosJaEleitos = new Set();
+        let jaEleitos = new Set();
         function eleger(partidoNome, candidatoNome, votos, tipo) {
-            let chave = `${partidoNome}|${candidatoNome}`;
-            if (!candidatosJaEleitos.has(chave)) {
-                candidatosJaEleitos.add(chave);
-                eleitos.push({ partido: partidoNome, candidato: candidatoNome, votos: votos, tipo: tipo });
+            let key = `${partidoNome}|${candidatoNome}`;
+            if (!jaEleitos.has(key)) {
+                jaEleitos.add(key);
+                eleitos.push({ partido: partidoNome, candidato: candidatoNome, votos, tipo });
                 return true;
             }
             return false;
         }
-        
         // Diretas
         for (let p of partidos) {
             let vagas = vagasDiretas[p.nome] || 0;
             if (vagas === 0) continue;
-            let ordenados = [...p.candidatos].sort((a,b) => b.votos - a.votos);
-            for (let i = 0; i < vagas && i < ordenados.length; i++)
+            let ordenados = [...p.candidatos].sort((a,b)=>b.votos - a.votos);
+            for (let i=0; i<vagas && i<ordenados.length; i++) {
                 eleger(p.nome, ordenados[i].nome, ordenados[i].votos, 'Direta');
-        }
-        
-        let vagasAtuais = { ...vagasDiretas };
-        while (sobrasRestantes > 0) {
-            let partidosCompetindo = [];
-            for (let p of partidosAptos) {
-                let elegiveisNaoEleitos = p.candidatos.filter(cand => cand.votos >= limiteCandidato20 && !candidatosJaEleitos.has(`${p.nome}|${cand.nome}`)).length;
-                if (elegiveisNaoEleitos > 0) partidosCompetindo.push(p);
             }
-            if (partidosCompetindo.length === 0) break;
+        }
+        let vagasAtuais = {...vagasDiretas};
+        while (sobrasRestantes > 0) {
+            let competidores = [];
+            for (let p of partidosAptos) {
+                let aindaPode = p.candidatos.filter(c => c.votos >= limiteCandidato20 && !jaEleitos.has(`${p.nome}|${c.nome}`)).length;
+                if (aindaPode > 0) competidores.push(p);
+            }
+            if (competidores.length === 0) break;
             let melhorMedia = -1, melhorPartido = null;
-            for (let p of partidosCompetindo) {
-                let media = p.total / ((vagasAtuais[p.nome] || 0) + 1);
-                if (media > melhorMedia) { melhorMedia = media; melhorPartido = p; }
+            for (let p of competidores) {
+                let media = p.total / ((vagasAtuais[p.nome]||0) + 1);
+                if (media > melhorMedia) {
+                    melhorMedia = media;
+                    melhorPartido = p;
+                }
             }
             if (!melhorPartido) break;
-            vagasAtuais[melhorPartido.nome] = (vagasAtuais[melhorPartido.nome] || 0) + 1;
+            vagasAtuais[melhorPartido.nome] = (vagasAtuais[melhorPartido.nome]||0) + 1;
             sobrasRestantes--;
-            let elegiveisOrdenados = melhorPartido.candidatos.filter(c => c.votos >= limiteCandidato20).sort((a,b)=>b.votos - a.votos);
-            for (let cand of elegiveisOrdenados) {
-                if (eleger(melhorPartido.nome, cand.nome, cand.votos, 'Sobra')) break;
-            }
+            let elegiveis = melhorPartido.candidatos.filter(c => c.votos >= limiteCandidato20 && !jaEleitos.has(`${melhorPartido.nome}|${c.nome}`)).sort((a,b)=>b.votos - a.votos);
+            if (elegiveis.length) eleger(melhorPartido.nome, elegiveis[0].nome, elegiveis[0].votos, 'Sobra');
         }
-        
         return { QE, limitePartido80, limiteCandidato20, totalDiretas, sobrasDistribuidas: eleitos.filter(e=>e.tipo==='Sobra').length, sobrasNaoPreenchidas: sobrasRestantes, votosValidos, cadeiras, partidosAptos, vagasDiretas, eleitos, partidos };
     }
-    
-    function gerarRelatorioUmaPagina() {
-        const dados = obterResultadoEleicao();
-        if (!dados) { alert('Calcule a eleição primeiro.'); return; }
-        const dataAtual = new Date().toLocaleString('pt-BR');
-        const relatorioHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"><title>Relatório Oficial - SEU VOTO CERTO</title>
-        <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-                font-family: 'Times New Roman', Times, serif;
-                margin: 1.2cm 1cm;
-                background: white;
-                color: black;
-                font-size: 10pt;
-                line-height: 1.2;
-            }
-            h1 { font-size: 16pt; text-align: center; margin-bottom: 4px; }
-            h2 { font-size: 12pt; text-align: center; border-bottom: 1px solid #000; margin: 8px 0 6px; padding-bottom: 2px; }
-            .cabecalho p { margin: 2px 0; }
-            .info-eleicao { margin: 6px 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
-            .info-eleicao div { flex: 1; }
-            table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-            th, td { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: top; }
-            th { background: #eef4fc; text-align: center; font-weight: bold; }
-            .rodape { margin-top: 16px; font-size: 8pt; text-align: center; border-top: 1px solid #aaa; padding-top: 6px; }
-            .assinatura { display: flex; justify-content: space-between; margin-top: 20px; font-size: 9pt; }
-            .page-break { page-break-before: avoid; }
-        </style>
-        </head>
-        <body>
-            <div class="cabecalho">
-                <h1>SEU VOTO CERTO</h1>
-                <p>Sistema Oficial de Apuração de Eleições Proporcionais</p>
-                <p><strong>Relatório de Resultado Final</strong> | Gerado em: ${dataAtual}</p>
-            </div>
-            
-            <div class="info-eleicao">
-                <div><strong>Votos válidos:</strong> ${dados.votosValidos.toLocaleString()}</div>
-                <div><strong>Cadeiras:</strong> ${dados.cadeiras}</div>
-                <div><strong>QE:</strong> ${dados.QE} votos</div>
-                <div><strong>80% QE (partido):</strong> ${dados.limitePartido80}</div>
-                <div><strong>20% QE (candidato):</strong> ${dados.limiteCandidato20}</div>
-                <div><strong>Vagas diretas:</strong> ${dados.totalDiretas}</div>
-                <div><strong>Sobras distribuídas:</strong> ${dados.sobrasDistribuidas}</div>
-                ${dados.sobrasNaoPreenchidas>0? `<div><strong style="color:red;">Sobras não preenchidas:</strong> ${dados.sobrasNaoPreenchidas}</div>` : ''}
-            </div>
-            
-            <h2>Distribuição de Vagas por Partido</h2>
-            <table>
-                <thead><tr><th>Partido</th><th>Total Votos</th><th>Diretas</th><th>Sobras</th><th>Total</th></tr></thead>
-                <tbody>
-                    ${dados.partidosAptos.map(p => {
-                        let dir = dados.vagasDiretas[p.nome] || 0;
-                        let sob = dados.eleitos.filter(e => e.partido === p.nome && e.tipo === 'Sobra').length;
-                        return `<tr><td>${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><strong>${dir+sob}</strong></td></tr>`;
-                    }).join('')}
-                </tbody>
-            </table>
-            
-            <h2>Candidatos Eleitos</h2>
-            <table>
-                <thead><tr><th>Partido</th><th>Candidato</th><th>Votos</th><th>Tipo</th></tr></thead>
-                <tbody>
-                    ${dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido)).map(e => `<tr><td>${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td style="text-align:center">${e.tipo}</td></tr>`).join('')}
-                </tbody>
-            </table>
-            
-            <div class="rodape">
-                Documento oficial gerado pelo sistema SEU VOTO CERTO.<br>
-                Relatório compacto em uma única página.
-            </div>
-            <div class="assinatura">
-                <div>_________________________________<br>Responsável pela Apuração</div>
-                <div>_________________________________<br>Representante do Ministério Público Eleitoral</div>
-            </div>
-        </body>
-        </html>
-        `;
-        const janela = window.open();
-        janela.document.write(relatorioHtml);
-        janela.document.close();
-        janela.print();
+
+    let chartInstance = null;
+    function atualizarResultados() {
+        const dados = calcularResultado();
+        if (!dados) { document.getElementById('resultadoStats').innerHTML = '<p>Dados inválidos ou nenhum partido cadastrado.</p>'; return; }
+        // Exibir estatísticas
+        let statsHtml = `<div><strong>Quociente Eleitoral:</strong> ${dados.QE} votos</div>
+                        <div><strong>80% QE (partido):</strong> ${dados.limitePartido80} | <strong>20% QE (cand.):</strong> ${dados.limiteCandidato20}</div>
+                        <div><strong>Vagas diretas:</strong> ${dados.totalDiretas} | <strong>Sobras distribuídas:</strong> ${dados.sobrasDistribuidas}</div>`;
+        if (dados.sobrasNaoPreenchidas > 0) statsHtml += `<div class="badge">⚠️ ${dados.sobrasNaoPreenchidas} sobras não preenchidas (falta de candidatos elegíveis)</div>`;
+        statsHtml += `<hr><h4>Candidatos Eleitos</h4><ul style="list-style: none;">`;
+        for (let e of dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido))) {
+            statsHtml += `<li><strong>${e.partido}</strong> - ${e.candidato} (${e.votos} votos, ${e.tipo})</li>`;
+        }
+        statsHtml += `</ul>`;
+        document.getElementById('resultadoStats').innerHTML = statsHtml;
+        // Gráfico de distribuição de vagas por partido
+        const labels = dados.partidosAptos.map(p => p.nome);
+        const valores = dados.partidosAptos.map(p => {
+            let dir = dados.vagasDiretas[p.nome]||0;
+            let sob = dados.eleitos.filter(e=>e.partido===p.nome && e.tipo==='Sobra').length;
+            return dir+sob;
+        });
+        if (chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('vagasChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: { labels, datasets: [{ data: valores, backgroundColor: ['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
     }
-    
-    function carregarExemploDidatico() {
+
+    // Relatório em PDF (impressão com estilo refinado)
+    function gerarRelatorio() {
+        const dados = calcularResultado();
+        if (!dados) { alert('Nenhum dado para gerar relatório.'); return; }
+        const dataAtual = new Date().toLocaleString('pt-BR');
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório SEU VOTO CERTO</title><style>
+            body { font-family: 'Times New Roman', serif; margin: 1.5cm; font-size: 11pt; }
+            h1 { text-align: center; font-size: 18pt; }
+            h2 { font-size: 14pt; border-bottom: 1px solid #000; margin-top: 20px; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+            th { background: #eef4fc; }
+            .assinatura { margin-top: 40px; display: flex; justify-content: space-between; }
+        </style></head><body>
+        <h1>SEU VOTO CERTO - Relatório Oficial</h1>
+        <p>Gerado em: ${dataAtual}</p>
+        <p><strong>Votos válidos:</strong> ${dados.votosValidos.toLocaleString()} | <strong>Cadeiras:</strong> ${dados.cadeiras} | <strong>QE:</strong> ${dados.QE}</p>
+        <h2>Distribuição de Vagas</h2>
+        <table><thead><tr><th>Partido</th><th>Total Votos</th><th>Diretas</th><th>Sobras</th><th>Total</th></tr></thead><tbody>
+        ${dados.partidosAptos.map(p => {
+            let dir = dados.vagasDiretas[p.nome]||0;
+            let sob = dados.eleitos.filter(e=>e.partido===p.nome && e.tipo==='Sobra').length;
+            return `<tr><td>${p.nome}</td><td style="text-align:right">${p.total.toLocaleString()}</td><td style="text-align:center">${dir}</td><td style="text-align:center">${sob}</td><td style="text-align:center"><b>${dir+sob}</b></td></tr>`;
+        }).join('')}
+        </tbody></table>
+        <h2>Candidatos Eleitos</h2>
+        <table><thead><tr><th>Partido</th><th>Candidato</th><th>Votos</th><th>Tipo</th></tr></thead><tbody>
+        ${dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido)).map(e => `<tr><td>${e.partido}</td><td>${e.candidato}</td><td style="text-align:right">${e.votos.toLocaleString()}</td><td>${e.tipo}</td></tr>`).join('')}
+        </tbody></table>
+        <div class="assinatura"><div>_________________________<br>Responsável</div><div>_________________________<br>MP Eleitoral</div></div>
+        </body></html>`;
+        const win = window.open();
+        win.document.write(html);
+        win.document.close();
+        win.print();
+    }
+
+    // ---------- PERSISTÊNCIA (localStorage) ----------
+    function salvarSimulacao() {
+        const dados = { partidos, totalVotos: document.getElementById('totalVotos').value, numCadeiras: document.getElementById('numCadeiras').value };
+        localStorage.setItem('seuVotoCerto_simulacao', JSON.stringify(dados));
+        alert('Simulação salva!');
+    }
+    function carregarSimulacao() {
+        const raw = localStorage.getItem('seuVotoCerto_simulacao');
+        if (!raw) { alert('Nenhuma simulação salva.'); return; }
+        const dados = JSON.parse(raw);
+        partidos = dados.partidos;
+        document.getElementById('totalVotos').value = dados.totalVotos;
+        document.getElementById('numCadeiras').value = dados.numCadeiras;
+        renderizarTabela();
+        calcularEleicao();
+        alert('Simulação carregada!');
+    }
+
+    // Exemplo didático (nomes genéricos, sem dados reais)
+    function carregarExemplo() {
         partidos = [];
-        partidos.push({ nome: 'PSD', total: 7662, candidatos: [{nome:'Cand PSD1', votos:1720},{nome:'Cand PSD2', votos:913},{nome:'Cand PSD3', votos:877},{nome:'Cand PSD4', votos:849}] });
-        partidos.push({ nome: 'PP', total: 6968, candidatos: [{nome:'Cand PP1', votos:1576},{nome:'Cand PP2', votos:1010}] });
-        partidos.push({ nome: 'PDT', total: 5578, candidatos: [{nome:'Cand PDT1', votos:832}] });
-        partidos.push({ nome: 'PSB', total: 5507, candidatos: [{nome:'Cand PSB1', votos:1102}] });
-        partidos.push({ nome: 'PODEMOS', total: 5116, candidatos: [{nome:'Cand POD1', votos:2135},{nome:'Cand POD2', votos:1024}] });
-        partidos.push({ nome: 'PL', total: 5087, candidatos: [{nome:'Cand PL1', votos:858}] });
-        partidos.push({ nome: 'UNIÃO', total: 4905, candidatos: [{nome:'Cand UNI1', votos:1212},{nome:'Cand UNI2', votos:943},{nome:'Cand UNI3', votos:853}] });
-        partidos.push({ nome: 'AVANTE', total: 3408, candidatos: [{nome:'Cand AVA1', votos:1210}] });
-        partidos.push({ nome: 'P9', total: 3085, candidatos: [] });
+        partidos.push({ nome: 'PSD', total: 7662, candidatos: [{nome:'Candidato A1', votos:1720},{nome:'A2', votos:913},{nome:'A3', votos:877},{nome:'A4', votos:849}] });
+        partidos.push({ nome: 'PP', total: 6968, candidatos: [{nome:'B1', votos:1576},{nome:'B2', votos:1010}] });
+        partidos.push({ nome: 'PDT', total: 5578, candidatos: [{nome:'C1', votos:832}] });
+        partidos.push({ nome: 'PSB', total: 5507, candidatos: [{nome:'D1', votos:1102}] });
+        partidos.push({ nome: 'PODEMOS', total: 5116, candidatos: [{nome:'E1', votos:2135},{nome:'E2', votos:1024}] });
+        partidos.push({ nome: 'PL', total: 5087, candidatos: [{nome:'F1', votos:858}] });
+        partidos.push({ nome: 'UNIÃO', total: 4905, candidatos: [{nome:'G1', votos:1212},{nome:'G2', votos:943},{nome:'G3', votos:853}] });
+        partidos.push({ nome: 'AVANTE', total: 3408, candidatos: [{nome:'H1', votos:1210}] });
         document.getElementById('totalVotos').value = 58252;
         document.getElementById('numCadeiras').value = 15;
         renderizarTabela();
-        document.getElementById('calcularBtn').click();
+        calcularEleicao();
     }
-    
-    function resetarPartidos() { partidos = []; renderizarTabela(); document.getElementById('resultados').innerHTML = 'Nenhum partido cadastrado.'; }
-    function adicionarPartido() { let nome = prompt('Nome do partido:', 'X'); if(nome) partidos.push({ nome: nome.substring(0,8).toUpperCase(), total: 0, candidatos: [] }); renderizarTabela(); }
-    function atualizarResultadoTela() {
-        const dados = obterResultadoEleicao();
-        if (!dados) { document.getElementById('resultados').innerHTML = 'Dados inválidos.'; return; }
-        let html = `<div><h3>Resultado</h3><p>QE: ${dados.QE} | 80%: ${dados.limitePartido80} | 20%: ${dados.limiteCandidato20}</p><table border="1" style="border-collapse:collapse">` +
-            `<tr><th>Partido</th><th>Total</th><th>Diretas</th><th>Sobras</th><th>Total</th></tr>`;
-        for(let p of dados.partidosAptos) {
-            let dir = dados.vagasDiretas[p.nome]||0;
-            let sob = dados.eleitos.filter(e=>e.partido===p.nome && e.tipo==='Sobra').length;
-            html += `<tr><td>${p.nome}</td><td>${p.total}</td><td>${dir}</td><td>${sob}</td><td>${dir+sob}</td></tr>`;
-        }
-        html += `</table><h4>Eleitos</h4><table border="1"><tr><th>Partido</th><th>Candidato</th><th>Votos</th><th>Tipo</th></tr>`;
-        for(let e of dados.eleitos.sort((a,b)=>a.partido.localeCompare(b.partido))) {
-            html += `<tr><td>${e.partido}</td><td>${e.candidato}</td><td>${e.votos}</td><td>${e.tipo}</td></tr>`;
-        }
-        html += `</table></div>`;
-        document.getElementById('resultados').innerHTML = html;
-    }
-    
-    document.getElementById('calcularBtn').addEventListener('click', atualizarResultadoTela);
-    document.getElementById('exemploBtn').addEventListener('click', carregarExemploDidatico);
+    function resetarPartidos() { partidos = []; renderizarTabela(); calcularEleicao(); }
+    function adicionarPartido() { let nome = prompt('Nome do partido:'); if(nome) partidos.push({ nome: nome.toUpperCase().substring(0,8), total: 0, candidatos: [] }); renderizarTabela(); calcularEleicao(); }
+    function calcularEleicao() { atualizarTotaisPartidos(); atualizarResultados(); }
+
+    // Tema escuro
+    const themeToggle = document.getElementById('themeToggle');
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Event listeners
+    document.getElementById('calcularBtn').addEventListener('click', calcularEleicao);
+    document.getElementById('exemploBtn').addEventListener('click', carregarExemplo);
     document.getElementById('resetPartidosBtn').addEventListener('click', resetarPartidos);
     document.getElementById('novoPartidoBtn').addEventListener('click', adicionarPartido);
-    document.getElementById('gerarRelatorioBtn').addEventListener('click', gerarRelatorioUmaPagina);
-    
-    carregarExemploDidatico();
+    document.getElementById('salvarSimulacaoBtn').addEventListener('click', salvarSimulacao);
+    document.getElementById('carregarSimulacaoBtn').addEventListener('click', carregarSimulacao);
+    document.getElementById('gerarRelatorioBtn').addEventListener('click', gerarRelatorio);
+
+    // Inicialização
+    carregarExemplo();
 </script>
 </body>
 </html>
