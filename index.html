@@ -67,6 +67,7 @@
         <div class="logo"><h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1><p>Sistema Premium de Apuração Proporcional</p></div>
         <button id="themeToggle" class="btn-outline btn-sm"><i class="fas fa-moon"></i> Modo Escuro</button>
     </div>
+
     <div class="tabs" id="tabs">
         <button class="tab-btn active" data-tab="home"><i class="fas fa-home"></i> Início</button>
         <button class="tab-btn" data-tab="calculator"><i class="fas fa-calculator"></i> Calculadora</button>
@@ -74,15 +75,112 @@
         <button class="tab-btn" data-tab="compare"><i class="fas fa-chart-line"></i> Comparador</button>
         <button class="tab-btn" data-tab="settings"><i class="fas fa-cog"></i> Configurações</button>
     </div>
-    <!-- Abas (mesmo conteúdo anterior, mas omitido por brevidade. O código completo está disponível.) -->
-    <div id="homePane" class="tab-pane active">[Conteúdo da home]</div>
-    <div id="calculatorPane" class="tab-pane">[Calculadora]</div>
-    <div id="scenariosPane" class="tab-pane">[Cenários]</div>
-    <div id="comparePane" class="tab-pane">[Comparador]</div>
-    <div id="settingsPane" class="tab-pane">[Configurações]</div>
+
+    <!-- Aba Início -->
+    <div id="homePane" class="tab-pane active">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-graduation-cap"></i> Como funciona o sistema proporcional brasileiro</div>
+            <p>O sistema de lista aberta é usado para vereadores, deputados estaduais e federais. As regras:</p>
+            <ul style="margin: 1rem 0 0 1.5rem;">
+                <li><strong>Quociente Eleitoral (QE)</strong> = votos válidos ÷ cadeiras.</li>
+                <li><strong>Vagas diretas</strong> = parte inteira da divisão dos votos do partido pelo QE.</li>
+                <li><strong>Sobras</strong> – partido precisa de ≥80% do QE e candidato com ≥20% do QE. Distribuição pelo método das médias.</li>
+                <li><strong>Eleitos</strong> – os mais votados do partido (diretas) e, nas sobras, respeitando o mínimo individual.</li>
+            </ul>
+            <div style="margin-top: 1.5rem;"><button id="irParaCalculadoraBtn" class="btn">Ir para Calculadora <i class="fas fa-arrow-right"></i></button></div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-star"></i> Funcionalidades Premium</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 0.8rem;">
+                <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV/Excel</div>
+                <div><i class="fas fa-copy"></i> Múltiplos cenários</div>
+                <div><i class="fas fa-chart-simple"></i> Gráfico com cores exclusivas + labels (partido + cadeiras)</div>
+                <div><i class="fas fa-file-pdf"></i> Relatório PDF profissional</div>
+                <div><i class="fas fa-balance-scale"></i> Comparador de cenários</div>
+                <div><i class="fas fa-database"></i> Salvar localmente</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba Calculadora -->
+    <div id="calculatorPane" class="tab-pane">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
+            <div class="config-grid">
+                <div class="input-group"><label>🗳️ Votos válidos totais</label><input type="number" id="totalVotos" value="10000"></div>
+                <div class="input-group"><label>🪑 Número de cadeiras</label><input type="number" id="numCadeiras" value="9"></div>
+                <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
+                <button id="exemploBtn" class="btn-outline btn"><i class="fas fa-database"></i> Exemplo Didático</button>
+                <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar Tudo</button>
+                <button id="salvarCenarioComPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Cenário (com PDF)</button>
+                <button id="salvarCenarioSemPdfBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar Apenas Cenário</button>
+                <button id="importarCSVBtn" class="btn-outline btn"><i class="fas fa-upload"></i> Importar CSV</button>
+                <button id="exportarCSVBtn" class="btn-outline btn"><i class="fas fa-download"></i> Exportar CSV</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
+            <div style="margin-bottom: 1rem;"><button id="novoPartidoBtn" class="btn-sm btn-outline"><i class="fas fa-plus"></i> Adicionar Partido</button></div>
+            <div class="table-wrapper">
+                <table class="partidos-table" id="partidosTable">
+                    <thead><tr><th>Partido</th><th>Total de Votos (informado)</th><th>Candidatos</th><th style="width:80px">Ações</th></tr></thead>
+                    <tbody id="partidosTbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Resultado da Apuração</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex:2" id="resultadoStats"></div>
+                <div style="flex:1"><canvas id="vagasChart" width="400" height="300"></canvas></div>
+            </div>
+            <div style="margin-top: 1rem; text-align: right;"><button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (sem salvar)</button></div>
+        </div>
+    </div>
+
+    <!-- Aba Cenários -->
+    <div id="scenariosPane" class="tab-pane">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-folder-open"></i> Gerenciar Cenários</div>
+            <div style="margin-bottom: 1rem;"><button id="novoCenarioBtn" class="btn-sm btn-outline"><i class="fas fa-plus"></i> Novo Cenário</button></div>
+            <div id="scenarioList" class="scenario-list"></div>
+        </div>
+    </div>
+
+    <!-- Aba Comparador -->
+    <div id="comparePane" class="tab-pane">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-balance-scale"></i> Comparar dois cenários</div>
+            <div class="comparador">
+                <div class="comparador-col">
+                    <label>Cenário A</label>
+                    <select id="compareA" class="form-control"></select>
+                    <div id="compareResultA"></div>
+                </div>
+                <div class="comparador-col">
+                    <label>Cenário B</label>
+                    <select id="compareB" class="form-control"></select>
+                    <div id="compareResultB"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba Configurações -->
+    <div id="settingsPane" class="tab-pane">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-cog"></i> Preferências</div>
+            <div class="config-grid">
+                <div class="input-group"><label>Idioma</label><select id="idioma"><option value="pt">Português</option><option value="en">English</option></select></div>
+                <div class="input-group"><label>Unidade de votos</label><select id="unidade"><option value="unidade">Absoluto</option><option value="milhar">Milhares</option></select></div>
+                <button id="limparCacheBtn" class="btn-outline btn">Limpar todos os cenários</button>
+            </div>
+        </div>
+    </div>
 </div>
+
 <script>
-    // ==================== MÓDULO DE UTILITÁRIOS ====================
+    // ==================== UTILITÁRIOS ====================
     function showToast(msg, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast ${type === 'error' ? 'error' : ''}`;
@@ -93,16 +191,23 @@
     function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
     function validarNome(nome) { return nome.trim().substring(0, 30); }
     function validarVotos(val) { return Math.max(0, parseInt(val) || 0); }
+    function normalizarPartido(partido) {
+        return {
+            nome: validarNome(partido.nome).toUpperCase(),
+            total: validarVotos(partido.total),
+            candidatos: (partido.candidatos || []).map(c => ({ nome: validarNome(c.nome), votos: validarVotos(c.votos) }))
+        };
+    }
 
     // ==================== ESTADO GLOBAL ====================
     const App = {
-        partidos: [],          // { nome, total, candidatos: [{nome, votos}] }
-        cenarios: [],          // { id, nome, data, partidos, totalVotos, numCadeiras }
+        partidos: [],
+        cenarios: [],
         ativoId: null,
         chartInstance: null,
         coresPalette: ['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec489a','#06b6d4','#84cc16','#f97316','#d946ef','#14b8a6','#f43f5e','#6366f1','#a855f7','#eab308','#22c55e'],
         getCor(idx) { return this.coresPalette[idx % this.coresPalette.length]; },
-        salvar() { localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(this.cenarios)); this.notify(); },
+        persistir() { localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(this.cenarios)); this.atualizarUI(); },
         carregar() {
             const stored = localStorage.getItem('seuVotoCerto_cenarios');
             if (stored) {
@@ -113,55 +218,62 @@
                 this.cenarios.push({ id, nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: 10000, numCadeiras: 9 });
                 this.ativoId = id;
                 this.partidos = [];
+                this.persistir();
             } else {
                 const ativo = this.cenarios.find(c => c.id === this.ativoId) || this.cenarios[0];
                 this.ativoId = ativo.id;
-                this.partidos = JSON.parse(JSON.stringify(ativo.partidos));
+                this.partidos = (ativo.partidos || []).map(p => normalizarPartido(p));
+                document.getElementById('totalVotos').value = ativo.totalVotos;
+                document.getElementById('numCadeiras').value = ativo.numCadeiras;
             }
-            this.notify();
+            this.atualizarUI();
         },
         salvarCenarioAtual(nome, comPdf = false) {
             const idx = this.cenarios.findIndex(c => c.id === this.ativoId);
-            if (idx !== -1) {
-                this.cenarios[idx].partidos = JSON.parse(JSON.stringify(this.partidos));
-                this.cenarios[idx].totalVotos = parseInt(document.getElementById('totalVotos').value);
-                this.cenarios[idx].numCadeiras = parseInt(document.getElementById('numCadeiras').value);
-                this.cenarios[idx].data = new Date().toISOString();
-                if (nome) this.cenarios[idx].nome = nome;
-                this.salvar();
-                showToast(`Cenário "${this.cenarios[idx].nome}" salvo${comPdf ? ' (com PDF)' : ''}.`);
-            } else {
-                this.criarNovoCenario(nome);
-            }
+            const cen = {
+                id: this.ativoId,
+                nome: nome || (idx !== -1 ? this.cenarios[idx].nome : `Cenário ${this.cenarios.length+1}`),
+                data: new Date().toISOString(),
+                partidos: this.partidos.map(p => ({ nome: p.nome, total: p.total, candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos })) })),
+                totalVotos: validarVotos(document.getElementById('totalVotos').value),
+                numCadeiras: validarVotos(document.getElementById('numCadeiras').value)
+            };
+            if (idx !== -1) this.cenarios[idx] = cen;
+            else { this.cenarios.push(cen); this.ativoId = cen.id; }
+            this.persistir();
+            showToast(`Cenário "${cen.nome}" salvo${comPdf ? ' (com PDF)' : ''}.`);
         },
-        criarNovoCenario(nome) {
-            if (!nome) nome = `Cenário ${this.cenarios.length+1}`;
+        criarNovoCenario() {
+            const nome = prompt("Nome do novo cenário:", `Cenário ${this.cenarios.length+1}`);
+            if (!nome) return;
             const id = Date.now();
             this.cenarios.push({
                 id, nome, data: new Date().toISOString(),
-                partidos: JSON.parse(JSON.stringify(this.partidos)),
-                totalVotos: parseInt(document.getElementById('totalVotos').value),
-                numCadeiras: parseInt(document.getElementById('numCadeiras').value)
+                partidos: this.partidos.map(p => ({ nome: p.nome, total: p.total, candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos })) })),
+                totalVotos: validarVotos(document.getElementById('totalVotos').value),
+                numCadeiras: validarVotos(document.getElementById('numCadeiras').value)
             });
             this.ativoId = id;
-            this.salvar();
-            showToast(`Novo cenário "${nome}" criado.`);
+            this.persistir();
+            showToast(`Cenário "${nome}" criado.`);
         },
         carregarCenarioPorId(id) {
             const c = this.cenarios.find(c => c.id === id);
             if (c) {
                 this.ativoId = id;
-                this.partidos = JSON.parse(JSON.stringify(c.partidos));
+                this.partidos = (c.partidos || []).map(p => normalizarPartido(p));
                 document.getElementById('totalVotos').value = c.totalVotos;
                 document.getElementById('numCadeiras').value = c.numCadeiras;
-                this.notify();
-                // Mudar para aba calculadora
+                this.atualizarUI();
                 document.querySelector('.tab-btn[data-tab="calculator"]').click();
                 showToast(`Cenário "${c.nome}" carregado.`);
             }
         },
-        notify() { // Dispara eventos para atualizar UI
-            document.dispatchEvent(new CustomEvent('appStateChanged'));
+        atualizarUI() {
+            if (typeof renderizarTabela === 'function') renderizarTabela();
+            if (typeof atualizarResultados === 'function') atualizarResultados();
+            if (typeof atualizarListaCenarios === 'function') atualizarListaCenarios();
+            if (typeof atualizarSelectComparador === 'function') atualizarSelectComparador();
         }
     };
 
@@ -183,7 +295,6 @@
             if (!jaEleitos.has(key)) { jaEleitos.add(key); eleitos.push({ partido: partidoNome, candidato: candidatoNome, votos, tipo }); return true; }
             return false;
         };
-        // Diretas
         for (let p of partidosData) {
             let vagas = vagasDiretas[p.nome] || 0;
             if(vagas===0) continue;
@@ -214,12 +325,11 @@
         return { QE, limitePartido80, limiteCandidato20, totalDiretas, sobrasDistribuidas: eleitos.filter(e=>e.tipo==='Sobra').length, sobrasNaoPreenchidas: sobrasRestantes, votosValidos, cadeiras, partidos: partidosData, vagasDiretas, eleitos, vagasPorPartido };
     }
 
-    // ==================== RENDERIZAÇÃO DA TABELA (OTIMIZADA) ====================
-    let tabelaTbody = null;
+    // ==================== RENDERIZAÇÃO DA TABELA ====================
     function renderizarTabela() {
-        if (!tabelaTbody) tabelaTbody = document.getElementById('partidosTbody');
-        if (!tabelaTbody) return;
-        tabelaTbody.innerHTML = '';
+        const tbody = document.getElementById('partidosTbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
         App.partidos.forEach((p, idx) => {
             const tr = document.createElement('tr');
             tr.dataset.pidx = idx;
@@ -238,7 +348,7 @@
             divTotal.appendChild(inpTotal);
             const somaCand = p.candidatos.reduce((s,c)=>s+c.votos,0);
             if (somaCand > p.total) {
-                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle warning-icon'; warn.title = `Soma dos candidatos (${somaCand}) excede o total (${p.total}). O cálculo usa o total informado.`;
+                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle warning-icon'; warn.title = `A soma dos candidatos (${somaCand}) excede o total informado (${p.total}). O cálculo usa o total informado.`;
                 divTotal.appendChild(warn);
             }
             tdTotal.appendChild(divTotal);
@@ -264,7 +374,7 @@
             btnDel.addEventListener('click', () => { App.partidos.splice(idx,1); renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
             tdAcoes.appendChild(btnDel);
             tr.append(tdNome, tdTotal, tdCand, tdAcoes);
-            tabelaTbody.appendChild(tr);
+            tbody.appendChild(tr);
         });
         // Eventos delegados
         document.querySelectorAll('[data-cand-nome]').forEach(inp => inp.addEventListener('change', (e) => {
@@ -304,7 +414,6 @@
             if (App.chartInstance) { App.chartInstance.destroy(); App.chartInstance = null; }
             return;
         }
-        // Estatísticas
         let html = `<div><strong>Quociente Eleitoral:</strong> ${dados.QE} votos</div>
                     <div><strong>80% QE (partido):</strong> ${dados.limitePartido80} | <strong>20% QE (candidato):</strong> ${dados.limiteCandidato20}</div>
                     <div><strong>Vagas diretas:</strong> ${dados.totalDiretas} | <strong>Sobras distribuídas:</strong> ${dados.sobrasDistribuidas}</div>`;
@@ -344,9 +453,91 @@
         } else { ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height); }
     }
 
-    // ==================== PDF (com salvamento independente) ====================
+    // ==================== CENÁRIOS ====================
+    function atualizarListaCenarios() {
+        const container = document.getElementById('scenarioList');
+        if (!container) return;
+        container.innerHTML = '';
+        App.cenarios.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'scenario-item';
+            div.innerHTML = `
+                <div><strong>${escapeHtml(c.nome)}</strong><br><small>${new Date(c.data).toLocaleString()}</small></div>
+                <div>
+                    <button class="btn-sm btn-outline carregarCenario" data-id="${c.id}"><i class="fas fa-folder-open"></i> Carregar</button>
+                    <button class="btn-sm btn-outline renomearCenario" data-id="${c.id}"><i class="fas fa-edit"></i></button>
+                    <button class="btn-sm btn-outline deletarCenario" data-id="${c.id}"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+        document.querySelectorAll('.carregarCenario').forEach(btn => btn.addEventListener('click', (e) => { App.carregarCenarioPorId(parseInt(btn.dataset.id)); }));
+        document.querySelectorAll('.renomearCenario').forEach(btn => btn.addEventListener('click', (e) => {
+            const id = parseInt(btn.dataset.id);
+            const c = App.cenarios.find(c => c.id === id);
+            if (c) {
+                const novo = prompt('Novo nome:', c.nome);
+                if (novo) { c.nome = validarNome(novo); App.persistir(); }
+            }
+        }));
+        document.querySelectorAll('.deletarCenario').forEach(btn => btn.addEventListener('click', (e) => {
+            const id = parseInt(btn.dataset.id);
+            if (confirm('Remover este cenário?')) {
+                App.cenarios = App.cenarios.filter(c => c.id !== id);
+                if (!App.cenarios.length) {
+                    const novoId = Date.now();
+                    App.cenarios.push({ id: novoId, nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: 10000, numCadeiras: 9 });
+                    App.ativoId = novoId;
+                } else if (App.ativoId === id) App.ativoId = App.cenarios[0].id;
+                App.persistir();
+                App.carregarCenarioPorId(App.ativoId);
+            }
+        }));
+    }
+
+    function atualizarSelectComparador() {
+        const selectA = document.getElementById('compareA');
+        const selectB = document.getElementById('compareB');
+        if (!selectA) return;
+        selectA.innerHTML = '<option value="">Selecione</option>';
+        selectB.innerHTML = '<option value="">Selecione</option>';
+        App.cenarios.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.text = `${c.nome} (${new Date(c.data).toLocaleDateString()})`;
+            selectA.appendChild(opt.cloneNode(true));
+            selectB.appendChild(opt);
+        });
+        selectA.addEventListener('change', () => compararCenarios());
+        selectB.addEventListener('change', () => compararCenarios());
+    }
+
+    function compararCenarios() {
+        const idA = parseInt(document.getElementById('compareA').value);
+        const idB = parseInt(document.getElementById('compareB').value);
+        const cA = App.cenarios.find(c => c.id === idA);
+        const cB = App.cenarios.find(c => c.id === idB);
+        const render = (c, divId) => {
+            const div = document.getElementById(divId);
+            if (!c) { div.innerHTML = ''; return; }
+            const dados = calcularResultado(c.partidos || [], c.totalVotos, c.numCadeiras);
+            if (!dados) { div.innerHTML = 'Erro'; return; }
+            let html = `<strong>${escapeHtml(c.nome)}</strong><br>QE: ${dados.QE}<br>Vagas diretas: ${dados.totalDiretas}<br>Sobras: ${dados.sobrasDistribuidas}<br>`;
+            html += `<ul>`;
+            for (let e of dados.eleitos.slice(0,5)) html += `<li>${e.partido} - ${e.candidato} (${e.votos})</li>`;
+            if (dados.eleitos.length > 5) html += `<li>...</li>`;
+            html += `</ul>`;
+            div.innerHTML = html;
+        };
+        render(cA, 'compareResultA');
+        render(cB, 'compareResultB');
+    }
+
+    // ==================== PDF ====================
     async function gerarPDF() {
-        const dados = calcularResultado(validarVotos(document.getElementById('totalVotos').value), validarVotos(document.getElementById('numCadeiras').value));
+        const votos = validarVotos(document.getElementById('totalVotos').value);
+        const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
+        const dados = calcularResultado(App.partidos, votos, cadeiras);
         if (!dados) { showToast('Nenhum dado para gerar PDF', 'error'); return false; }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -383,19 +574,74 @@
     async function salvarCenarioComPdf() {
         const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
         if (!nome) return;
-        await gerarPDF(); // Gera o PDF e salva no computador
+        await gerarPDF();
         App.salvarCenarioAtual(nome, true);
     }
 
-    // ==================== INICIALIZAÇÃO E EVENTOS ====================
+    // ==================== CSV ====================
+    function exportarCSV() {
+        let rows = [["Partido","Total Votos","Candidato","Votos"]];
+        for(let p of App.partidos){
+            if(p.candidatos.length===0) rows.push([p.nome, p.total, "", ""]);
+            for(let c of p.candidatos) rows.push([p.nome, p.total, c.nome, c.votos]);
+        }
+        const csv = rows.map(r=>r.join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csv], {type:"text/csv"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "seuvotocerto.csv";
+        link.click();
+        showToast("Exportado para CSV");
+    }
+    function importarCSV(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const linhas = text.split(/\r?\n/);
+            const novos = [];
+            for(let i=1; i<linhas.length; i++){
+                if(!linhas[i].trim()) continue;
+                const partes = linhas[i].split(",");
+                const nomePartido = partes[0];
+                const totalPartido = parseInt(partes[1]);
+                const nomeCand = partes[2];
+                const votosCand = parseInt(partes[3]);
+                if(!nomePartido) continue;
+                let p = novos.find(p=>p.nome===nomePartido);
+                if(!p){
+                    p = { nome: validarNome(nomePartido).toUpperCase(), total: validarVotos(totalPartido), candidatos: [] };
+                    novos.push(p);
+                }
+                if(nomeCand && !isNaN(votosCand)) p.candidatos.push({ nome: validarNome(nomeCand), votos: validarVotos(votosCand) });
+            }
+            if(novos.length){
+                App.partidos = novos;
+                renderizarTabela();
+                atualizarResultados();
+                App.salvarCenarioAtual(null, false);
+                showToast("Importado com sucesso!");
+            } else showToast("Arquivo CSV inválido.", "error");
+        };
+        reader.readAsText(file, "UTF-8");
+    }
+
+    // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', () => {
-        tabelaTbody = document.getElementById('partidosTbody');
+        // Carregar tema
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+        // Carregar dados
         App.carregar();
         renderizarTabela();
         atualizarResultados();
-        // Listeners
-        document.getElementById('calcularBtn')?.addEventListener('click', () => atualizarResultados());
-        document.getElementById('exemploBtn')?.addEventListener('click', () => {
+        atualizarListaCenarios();
+        atualizarSelectComparador();
+        // Eventos
+        document.getElementById('calcularBtn').addEventListener('click', () => atualizarResultados());
+        document.getElementById('exemploBtn').addEventListener('click', () => {
             App.partidos = [
                 { nome: 'PSD', total:7662, candidatos:[{nome:'Candidato A1',votos:1720},{nome:'A2',votos:913},{nome:'A3',votos:877},{nome:'A4',votos:849}] },
                 { nome: 'PP', total:6968, candidatos:[{nome:'B1',votos:1576},{nome:'B2',votos:1010}] },
@@ -410,22 +656,41 @@
             document.getElementById('numCadeiras').value = 15;
             renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false);
         });
-        document.getElementById('resetPartidosBtn')?.addEventListener('click', () => { App.partidos = []; renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
-        document.getElementById('novoPartidoBtn')?.addEventListener('click', () => {
+        document.getElementById('resetPartidosBtn').addEventListener('click', () => { App.partidos = []; renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false); });
+        document.getElementById('novoPartidoBtn').addEventListener('click', () => {
             let nome = prompt('Nome do partido:');
             if (nome) App.partidos.push({ nome: validarNome(nome).toUpperCase(), total: 0, candidatos: [] });
             renderizarTabela(); atualizarResultados(); App.salvarCenarioAtual(null, false);
         });
-        document.getElementById('salvarCenarioComPdfBtn')?.addEventListener('click', salvarCenarioComPdf);
-        document.getElementById('salvarCenarioSemPdfBtn')?.addEventListener('click', () => {
+        document.getElementById('salvarCenarioComPdfBtn').addEventListener('click', salvarCenarioComPdf);
+        document.getElementById('salvarCenarioSemPdfBtn').addEventListener('click', () => {
             const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
             if (nome) App.salvarCenarioAtual(nome, false);
         });
-        document.getElementById('gerarPdfBtn')?.addEventListener('click', () => gerarPDF());
-        document.getElementById('exportarCSVBtn')?.addEventListener('click', () => { /* implementar */ });
-        document.getElementById('importarCSVBtn')?.addEventListener('click', () => { /* implementar */ });
-        document.getElementById('themeToggle')?.addEventListener('click', () => { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); });
-        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        document.getElementById('gerarPdfBtn').addEventListener('click', () => gerarPDF());
+        document.getElementById('exportarCSVBtn').addEventListener('click', exportarCSV);
+        document.getElementById('importarCSVBtn').addEventListener('click', () => {
+            let input = document.createElement('input'); input.type='file'; input.accept='.csv';
+            input.onchange = e => importarCSV(e.target.files[0]);
+            input.click();
+        });
+        document.getElementById('novoCenarioBtn').addEventListener('click', () => App.criarNovoCenario());
+        document.getElementById('limparCacheBtn').addEventListener('click', () => {
+            if (confirm("Apagar todos os cenários?")) { localStorage.removeItem('seuVotoCerto_cenarios'); location.reload(); }
+        });
+        document.getElementById('irParaCalculadoraBtn').addEventListener('click', () => document.querySelector('.tab-btn[data-tab="calculator"]').click());
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`${tabId}Pane`).classList.add('active');
+                if (tabId === 'compare') atualizarSelectComparador();
+                if (tabId === 'scenarios') atualizarListaCenarios();
+            });
+        });
     });
 </script>
 </body>
