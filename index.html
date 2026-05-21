@@ -59,6 +59,8 @@
         .toast.error { background: var(--danger); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { body { padding: 1rem; } .card { padding: 1rem; } }
+        /* Estilos para impressão / geração de PDF (não são usados diretamente, mas mantidos) */
+        .pdf-graph { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
@@ -95,7 +97,7 @@
                 <div><i class="fas fa-file-csv"></i> Importar/Exportar CSV/Excel</div>
                 <div><i class="fas fa-copy"></i> Múltiplos cenários</div>
                 <div><i class="fas fa-chart-simple"></i> Gráfico com cores exclusivas + labels (partido + cadeiras)</div>
-                <div><i class="fas fa-file-pdf"></i> Relatório PDF profissional</div>
+                <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico incluso</div>
                 <div><i class="fas fa-balance-scale"></i> Comparador de cenários</div>
                 <div><i class="fas fa-database"></i> Salvar localmente</div>
             </div>
@@ -134,7 +136,7 @@
                 <div style="flex:2" id="resultadoStats"></div>
                 <div style="flex:1"><canvas id="vagasChart" width="400" height="300"></canvas></div>
             </div>
-            <div style="margin-top: 1rem; text-align: right;"><button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (sem salvar)</button></div>
+            <div style="margin-top: 1rem; text-align: right;"><button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button></div>
         </div>
     </div>
 
@@ -439,6 +441,7 @@
                 data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: { position: 'bottom' },
                         tooltip: { callbacks: { label: (item) => `${item.label}: ${item.raw} cadeira(s)` } },
@@ -533,39 +536,71 @@
         render(cB, 'compareResultB');
     }
 
-    // ==================== PDF ====================
+    // ==================== PDF COM GRÁFICO ====================
     async function gerarPDF() {
         try {
-            const votos = validarVotos(document.getElementById('totalVotos').value);
-            const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
-            const dados = calcularResultado(App.partidos, votos, cadeiras);
-            if (!dados) { showToast('Nenhum dado para gerar PDF', 'error'); return false; }
+            showToast("Gerando PDF... Aguarde.", "info");
+            const canvas = document.getElementById('vagasChart');
+            if (!canvas) throw new Error("Canvas do gráfico não encontrado.");
+            // Capturar o gráfico como imagem
+            const imgData = await html2canvas(canvas, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            }).then(c => c.toDataURL('image/png'));
+
+            const dados = calcularResultado(
+                App.partidos,
+                validarVotos(document.getElementById('totalVotos').value),
+                validarVotos(document.getElementById('numCadeiras').value)
+            );
+            if (!dados) throw new Error("Nenhum dado para gerar PDF.");
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
+
+            // Cabeçalho
             doc.setFontSize(18);
             doc.text("SEU VOTO CERTO - Relatório Oficial", pageWidth/2, 20, { align: "center" });
             doc.setFontSize(10);
             doc.text(`Gerado em: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: "center" });
             doc.text(`Votos válidos: ${dados.votosValidos} | Cadeiras: ${dados.cadeiras} | QE: ${dados.QE}`, pageWidth/2, 38, { align: "center" });
+
+            // Adicionar o gráfico (imagem)
+            const imgWidth = 90;
+            const imgHeight = (imgData.height * imgWidth) / imgData.width;
+            doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, 48, imgWidth, imgHeight);
+
+            let y = 48 + imgHeight + 10;
+
+            // Tabela de partidos
             doc.autoTable({
-                startY: 48,
+                startY: y,
                 head: [['Partido','Total Votos','Diretas','Sobras','Total']],
                 body: dados.partidos.map(p => {
                     let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 };
                     return [p.nome, p.total, v.diretas, v.sobras, v.total];
                 }),
-                theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [15,118,110] }
+                theme: 'striped',
+                styles: { fontSize: 9 },
+                headStyles: { fillColor: [15,118,110] },
+                margin: { top: 10 }
             });
-            let y = doc.lastAutoTable.finalY + 10;
+
+            y = doc.lastAutoTable.finalY + 10;
             doc.text("Candidatos Eleitos", 14, y);
             y += 6;
             doc.autoTable({
                 startY: y,
                 head: [['Partido','Candidato','Votos','Tipo']],
                 body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]),
-                theme: 'striped', styles: { fontSize: 9 }
+                theme: 'striped',
+                styles: { fontSize: 9 }
             });
+
+            // Rodapé
             doc.setFontSize(8);
             doc.text("Sistema SEU VOTO CERTO - Cálculo proporcional segundo legislação brasileira", pageWidth/2, 280, { align: "center" });
             doc.save("relatorio_seu_voto_certo.pdf");
@@ -581,7 +616,6 @@
     async function salvarCenarioComPdf() {
         const nome = prompt("Nome do cenário:", `Cenário ${App.cenarios.length+1}`);
         if (!nome) return;
-        // Gera o PDF primeiro
         const pdfOk = await gerarPDF();
         if (pdfOk) {
             App.salvarCenarioAtual(nome, true);
@@ -639,13 +673,13 @@
 
     // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', () => {
-        // Carregar tema
+        // Tema
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         document.getElementById('themeToggle').addEventListener('click', () => {
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         });
-        // Carregar dados
+        // Dados
         App.carregar();
         renderizarTabela();
         atualizarResultados();
