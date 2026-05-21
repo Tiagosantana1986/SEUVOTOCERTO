@@ -3,391 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEU VOTO CERTO | Simulador de Eleições Proporcionais</title>
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>SEU VOTO CERTO | Apuração Proporcional Profissional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(145deg, #f4f9ff 0%, #e9f0f8 100%);
-            color: #1a2c3e;
-            line-height: 1.5;
+            background: var(--bg-page);
             transition: background 0.3s, color 0.2s;
+            padding: 2rem;
         }
-
-        /* Tema escuro premium */
+        :root {
+            --bg-page: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --accent: #0f766e;
+            --accent-light: #ccfbf1;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+            --table-hover: #f1f5f9;
+        }
         body.dark {
-            background: linear-gradient(145deg, #0f172a 0%, #0a0f1c 100%);
-            color: #e2e8f0;
+            --bg-page: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --accent: #2dd4bf;
+            --accent-light: #134e4a;
+            --table-hover: #2d3a4f;
         }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border-radius: 2rem;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        body.dark .glass-card {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
-        }
-
-        /* Header */
+        .container { max-width: 1400px; margin: 0 auto; }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
             margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
         }
-
         .logo h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #1e7e6c, #2c7da0);
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #2c7da0);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: -0.5px;
         }
-
-        .logo p {
-            font-size: 0.8rem;
-            color: #4a6f8f;
-        }
-
-        body.dark .logo p {
-            color: #94a3b8;
-        }
-
-        .theme-toggle {
-            background: rgba(255, 255, 255, 0.5);
-            border: none;
-            border-radius: 3rem;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            font-weight: 500;
-            backdrop-filter: blur(4px);
-        }
-
-        body.dark .theme-toggle {
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-        }
-
-        /* Tabs */
+        .logo p { font-size: 0.85rem; color: var(--text-secondary); }
         .tabs {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
             margin-bottom: 2rem;
-        }
-
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.6);
-            border: none;
-            padding: 0.7rem 1.6rem;
+            background: var(--card-bg);
+            padding: 0.5rem;
             border-radius: 3rem;
-            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.4rem;
+            border-radius: 2rem;
             cursor: pointer;
-            transition: 0.2s;
-            backdrop-filter: blur(4px);
-            font-size: 0.9rem;
-        }
-
-        body.dark .tab-btn {
-            background: rgba(30, 41, 59, 0.6);
-            color: #cbd5e1;
-        }
-
-        .tab-btn.active {
-            background: #1e7e6c;
-            color: white;
-            box-shadow: 0 6px 14px rgba(30,126,108,0.3);
-        }
-
-        .tab-pane {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-pane.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1.8rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            font-weight: 500;
+            color: var(--text-secondary);
             transition: all 0.2s;
-            border: 1px solid #eef2f8;
         }
-
-        body.dark .card {
-            background: #1e293b;
-            border-color: #334155;
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(15,118,110,0.3);
         }
-
+        .tab-pane { display: none; animation: fade 0.3s ease; }
+        .tab-pane.active { display: block; }
+        @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
         .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 600;
             margin-bottom: 1.2rem;
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            color: #0f172a;
+            gap: 0.5rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 0.75rem;
+            color: var(--text-primary);
         }
-
-        body.dark .card-title {
-            color: #f1f5f9;
-        }
-
-        /* Formulário */
         .config-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.2rem;
+            gap: 1rem;
             align-items: flex-end;
         }
-
         .input-group {
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
-            min-width: 170px;
+            min-width: 180px;
         }
-
         .input-group label {
             font-size: 0.7rem;
-            font-weight: 700;
+            font-weight: 600;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #4a6f8f;
         }
-
-        body.dark .input-group label {
-            color: #94a3b8;
-        }
-
         .input-group input {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 0.7rem 1rem;
-            font-size: 0.95rem;
-            transition: 0.2s;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.8rem;
+            padding: 0.6rem 1rem;
+            color: var(--text-primary);
         }
-
-        body.dark .input-group input {
-            background: #0f172a;
-            border-color: #334155;
-            color: white;
-        }
-
         .input-group input:focus {
             outline: none;
-            border-color: #1e7e6c;
-            box-shadow: 0 0 0 3px rgba(30,126,108,0.2);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-light);
         }
-
-        .qe-badge {
-            background: #e6f7f3;
-            padding: 0.5rem 1rem;
-            border-radius: 1rem;
-            font-weight: 600;
-            display: inline-block;
+        .input-group input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+        .qe-info {
             margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--accent-light);
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--accent);
+            text-align: center;
         }
-
-        body.dark .qe-badge {
-            background: #134e4a;
-            color: #ccfbf1;
-        }
-
-        /* Botões */
         .btn {
             border: none;
             border-radius: 2rem;
-            padding: 0.7rem 1.5rem;
-            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 0.6rem;
-            font-size: 0.85rem;
-        }
-
-        .btn-primary {
-            background: #1e7e6c;
+            gap: 0.5rem;
+            background: var(--accent);
             color: white;
-            box-shadow: 0 4px 8px rgba(30,126,108,0.2);
+            transition: 0.2s;
         }
-
-        .btn-primary:hover {
-            background: #0d5c56;
-            transform: translateY(-2px);
-        }
-
         .btn-outline {
             background: transparent;
-            border: 1px solid #cbd5e1;
-            color: #1e293b;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
         }
-
-        body.dark .btn-outline {
-            border-color: #475569;
-            color: #e2e8f0;
-        }
-
-        .btn-outline:hover {
-            background: #f1f5f9;
-        }
-
-        body.dark .btn-outline:hover {
-            background: #334155;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-sm {
-            padding: 0.4rem 1rem;
-            font-size: 0.75rem;
-        }
-
-        /* Tabela */
-        .table-wrapper {
-            overflow-x: auto;
-            margin-top: 1rem;
-        }
-
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        .btn-danger { background: var(--danger); }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        .table-wrapper { overflow-x: auto; border-radius: 1rem; margin-top: 1rem; }
         .partidos-table {
             width: 100%;
             border-collapse: collapse;
         }
-
-        .partidos-table th,
-        .partidos-table td {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 1rem 0.5rem;
+        .partidos-table th, .partidos-table td {
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 0.5rem;
             text-align: left;
             vertical-align: top;
         }
-
-        body.dark .partidos-table th,
-        body.dark .partidos-table td {
-            border-bottom-color: #334155;
-        }
-
         .partidos-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
             font-size: 0.7rem;
             text-transform: uppercase;
-            color: #4a6f8f;
-            font-weight: 600;
         }
-
+        .partidos-table tr:hover { background: var(--table-hover); }
         .candidato-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.6rem;
+            gap: 0.5rem;
             align-items: center;
-            margin-bottom: 0.6rem;
-            background: #f8fafc;
+            margin-bottom: 0.5rem;
+            background: var(--bg-page);
             padding: 0.5rem;
             border-radius: 1rem;
         }
-
-        body.dark .candidato-row {
-            background: #0f172a;
-        }
-
         .add-cand-form {
             display: flex;
-            gap: 0.6rem;
-            margin-top: 0.6rem;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
             flex-wrap: wrap;
         }
-
-        /* Gráfico */
-        .chart-container {
-            margin-top: 1.5rem;
-            height: 400px;
-        }
-
-        /* Resultados */
         .result-stats {
-            background: #f8fafc;
+            background: var(--bg-page);
             border-radius: 1rem;
-            padding: 1.2rem;
+            padding: 1rem;
             margin-top: 1.5rem;
         }
-
-        body.dark .result-stats {
-            background: #0f172a;
-        }
-
         .badge {
-            background: #ccfbf1;
-            color: #0f766e;
+            background: var(--accent-light);
             padding: 0.2rem 0.6rem;
             border-radius: 2rem;
             font-size: 0.7rem;
+            color: var(--accent);
+            display: inline-block;
         }
-
-        /* Rodapé */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 2rem;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+            box-shadow: var(--shadow-lg);
+        }
+        .toast.error { background: var(--danger); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .footer {
             text-align: center;
             margin-top: 2rem;
             padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--border);
             font-size: 0.7rem;
-            color: #4a6f8f;
+            color: var(--text-secondary);
         }
-
-        body.dark .footer {
-            border-top-color: #334155;
-            color: #94a3b8;
+        .footer-home {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
         }
-
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            .card {
-                padding: 1.2rem;
-            }
+            body { padding: 1rem; }
         }
     </style>
 </head>
@@ -396,9 +265,9 @@
     <div class="header">
         <div class="logo">
             <h1><i class="fas fa-check-circle"></i> SEU VOTO CERTO</h1>
-            <p>Simulador de eleições proporcionais | Auditoria TSE</p>
+            <p>Apuração proporcional profissional | Auditoria TSE</p>
         </div>
-        <button id="themeToggle" class="theme-toggle"><i class="fas fa-moon"></i> <span>Modo Escuro</span></button>
+        <button id="themeToggle" class="btn-outline btn-sm"><i class="fas fa-moon"></i> Modo Escuro</button>
     </div>
 
     <div class="tabs">
@@ -406,74 +275,71 @@
         <button class="tab-btn" data-tab="calculator"><i class="fas fa-calculator"></i> Calculadora</button>
     </div>
 
-    <!-- Início -->
+    <!-- Aba Início -->
     <div id="homePane" class="tab-pane active">
         <div class="card">
-            <div class="card-title"><i class="fas fa-graduation-cap"></i> Como funciona o sistema proporcional?</div>
-            <p style="margin-bottom: 1rem;">Eleição de vereadores, deputados estaduais e federais segue regras específicas:</p>
-            <ul style="margin-left: 1.5rem; line-height: 1.6;">
-                <li><strong>Quociente Eleitoral (QE)</strong> = total de votos válidos ÷ número de cadeiras.</li>
+            <div class="card-title"><i class="fas fa-graduation-cap"></i> Sistema proporcional brasileiro</div>
+            <p style="margin-bottom: 1rem;">Regras para vereadores, deputados estaduais e federais:</p>
+            <ul style="margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+                <li><strong>Quociente Eleitoral (QE)</strong> = votos válidos ÷ cadeiras.</li>
                 <li><strong>Vagas diretas</strong> = parte inteira da divisão dos votos do partido pelo QE.</li>
                 <li><strong>Sobras</strong> – partido precisa de ≥80% do QE e candidato com ≥20% do QE. Distribuição pelo método das médias.</li>
                 <li><strong>Eleitos</strong> – os mais votados do partido (diretas) e, nas sobras, respeitando o mínimo individual.</li>
             </ul>
             <div style="margin-top: 1.5rem;">
-                <button id="irParaCalculadoraBtn" class="btn btn-primary">Ir para Calculadora <i class="fas fa-arrow-right"></i></button>
+                <button id="irParaCalculadoraBtn" class="btn">Ir para Calculadora <i class="fas fa-arrow-right"></i></button>
             </div>
         </div>
         <div class="card">
             <div class="card-title"><i class="fas fa-star"></i> Funcionalidades</div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 0.8rem;">
-                <div><i class="fas fa-chart-bar"></i> Gráfico de barras horizontal</div>
-                <div><i class="fas fa-file-pdf"></i> Relatório PDF profissional</div>
-                <div><i class="fas fa-moon"></i> Tema claro/escuro</div>
-                <div><i class="fas fa-save"></i> Salvar simulações</div>
-                <div><i class="fas fa-database"></i> Recuperar histórico</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0.8rem;">
+                <div><i class="fas fa-chart-bar"></i> Gráfico de barras horizontais</div>
+                <div><i class="fas fa-file-pdf"></i> Relatório PDF com gráfico</div>
+                <div><i class="fas fa-moon"></i> Tema escuro profissional</div>
+                <div><i class="fas fa-save"></i> Salvar cenário local</div>
             </div>
         </div>
-        <div class="footer" style="margin-top: 0.5rem;">
-            Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190
+        <div class="footer-home">
+            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
         </div>
     </div>
 
-    <!-- Calculadora -->
+    <!-- Aba Calculadora -->
     <div id="calculatorPane" class="tab-pane">
         <div class="card">
-            <div class="card-title"><i class="fas fa-sliders-h"></i> Configuração da Eleição</div>
+            <div class="card-title"><i class="fas fa-sliders-h"></i> Parâmetros da Eleição</div>
             <div class="config-grid">
-                <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" value="58252"></div>
-                <div class="input-group"><label>🪑 Número de cadeiras</label><input type="number" id="numCadeiras" value="15"></div>
-                <button id="calcularBtn" class="btn btn-primary"><i class="fas fa-calculator"></i> Calcular</button>
-                <button id="resetPartidosBtn" class="btn btn-outline"><i class="fas fa-trash-alt"></i> Limpar</button>
-                <button id="salvarCenarioBtn" class="btn btn-outline"><i class="fas fa-save"></i> Salvar cenário</button>
+                <div class="input-group"><label>🗳️ Votos válidos</label><input type="number" id="totalVotos" placeholder="Ex: 58252" value=""></div>
+                <div class="input-group"><label>🪑 Cadeiras</label><input type="number" id="numCadeiras" placeholder="Ex: 15" value=""></div>
+                <button id="calcularBtn" class="btn"><i class="fas fa-calculator"></i> Calcular</button>
+                <button id="resetPartidosBtn" class="btn-outline btn-danger btn"><i class="fas fa-trash-alt"></i> Limpar</button>
+                <button id="salvarCenarioBtn" class="btn-outline btn"><i class="fas fa-save"></i> Salvar cenário</button>
             </div>
-            <div id="qeInfo" class="qe-badge" style="margin-top: 1rem;">📊 Quociente Eleitoral: -- votos</div>
+            <div id="qeInfo" class="qe-info">⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.</div>
         </div>
-
         <div class="card">
             <div class="card-title"><i class="fas fa-landmark"></i> Partidos e Candidatos</div>
-            <button id="novoPartidoBtn" class="btn btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
+            <button id="novoPartidoBtn" class="btn-sm btn-outline" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Adicionar Partido</button>
             <div class="table-wrapper">
                 <table class="partidos-table" id="partidosTable">
-                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos</th><th style="width:80px"></th></tr></thead>
+                    <thead><tr><th>Partido</th><th>Total Votos</th><th>Candidatos (nome / votos)</th><th style="width:80px">Ações</th></tr></thead>
                     <tbody id="partidosTbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="card">
-            <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas</div>
-            <div class="chart-container">
+            <div class="card-title"><i class="fas fa-chart-bar"></i> Distribuição de Vagas por Partido</div>
+            <div style="height: 400px;">
                 <canvas id="vagasChart" width="400" height="400"></canvas>
             </div>
             <div style="margin-top: 1rem; text-align: right;">
-                <button id="gerarPdfBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Gerar PDF com gráfico</button>
+                <button id="gerarPdfBtn" class="btn"><i class="fas fa-file-pdf"></i> Gerar PDF (com gráfico)</button>
             </div>
             <div id="resultadoStats" class="result-stats"></div>
         </div>
         <div class="footer">
-            Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190
-            <div style="margin-top: 0.5rem;"><button id="limparCacheBtn" class="btn btn-sm btn-outline"><i class="fas fa-database"></i> Limpar todos os dados salvos</button></div>
+            <p>Desenvolvido por <strong>TIAGO SANT'ANA</strong> | Contato: (43) 99984-1190</p>
+            <button id="limparCacheBtn" class="btn-sm btn-outline" style="margin-top: 0.5rem;"><i class="fas fa-database"></i> Limpar todos os dados salvos</button>
         </div>
     </div>
 </div>
@@ -501,7 +367,7 @@
         return Math.max(0, parseInt(val) || 0);
     }
 
-    // ==================== ESTADO ====================
+    // ==================== ESTADO GLOBAL ====================
     let partidos = [];
     let chartInstance = null;
     let cenarios = [];
@@ -514,7 +380,7 @@
             } catch(e) { cenarios = []; }
         }
         if (!cenarios.length) {
-            cenarios.push({ nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: 58252, numCadeiras: 15 });
+            cenarios.push({ nome: "Simulação 1", data: new Date().toISOString(), partidos: [], totalVotos: null, numCadeiras: null });
             localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(cenarios));
         }
         const ultimo = cenarios[cenarios.length-1];
@@ -523,8 +389,8 @@
             total: p.total,
             candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos }))
         }));
-        document.getElementById('totalVotos').value = ultimo.totalVotos;
-        document.getElementById('numCadeiras').value = ultimo.numCadeiras;
+        if (ultimo.totalVotos) document.getElementById('totalVotos').value = ultimo.totalVotos;
+        if (ultimo.numCadeiras) document.getElementById('numCadeiras').value = ultimo.numCadeiras;
     }
 
     function salvarCenario() {
@@ -534,8 +400,8 @@
             nome: nome,
             data: new Date().toISOString(),
             partidos: partidos.map(p => ({ nome: p.nome, total: p.total, candidatos: p.candidatos.map(c => ({ nome: c.nome, votos: c.votos })) })),
-            totalVotos: validarVotos(document.getElementById('totalVotos').value),
-            numCadeiras: validarVotos(document.getElementById('numCadeiras').value)
+            totalVotos: validarVotos(document.getElementById('totalVotos').value) || null,
+            numCadeiras: validarVotos(document.getElementById('numCadeiras').value) || null
         });
         localStorage.setItem('seuVotoCerto_cenarios', JSON.stringify(cenarios));
         showToast(`Cenário "${nome}" salvo!`);
@@ -543,7 +409,7 @@
 
     // ==================== LÓGICA ELEITORAL ====================
     function calcularResultado(partidosData, votosValidos, cadeiras) {
-        if (!partidosData.length) return null;
+        if (!partidosData.length || !votosValidos || !cadeiras) return null;
         const QE = Math.floor(votosValidos / cadeiras);
         const limitePartido80 = Math.floor(0.8 * QE) + 1;
         const limiteCandidato20 = Math.floor(0.2 * QE) + 1;
@@ -612,19 +478,20 @@
             const tdNome = document.createElement('td');
             const inpNome = document.createElement('input');
             inpNome.type = 'text'; inpNome.value = p.nome; inpNome.maxLength = 30;
-            inpNome.style.background = 'var(--bg-input)'; inpNome.style.border = '1px solid #e2e8f0'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
+            inpNome.style.background = 'var(--card-bg)'; inpNome.style.border = '1px solid var(--border)'; inpNome.style.borderRadius = '0.8rem'; inpNome.style.padding = '0.4rem 0.6rem';
             inpNome.addEventListener('change', (e) => { p.nome = validarNome(e.target.value); renderizarTabela(); atualizarResultados(); });
             tdNome.appendChild(inpNome);
             const tdTotal = document.createElement('td');
             const divTotal = document.createElement('div'); divTotal.style.display = 'flex'; divTotal.style.alignItems = 'center'; divTotal.style.gap = '0.5rem';
             const inpTotal = document.createElement('input');
             inpTotal.type = 'number'; inpTotal.value = p.total; inpTotal.min = 0;
-            inpTotal.style.background = 'var(--bg-input)'; inpTotal.style.border = '1px solid #e2e8f0'; inpTotal.style.borderRadius = '0.8rem'; inpTotal.style.padding = '0.4rem 0.6rem'; inpTotal.style.width = '100px';
+            inpTotal.style.background = 'var(--card-bg)'; inpTotal.style.border = '1px solid var(--border)'; inpTotal.style.borderRadius = '0.8rem'; inpTotal.style.padding = '0.4rem 0.6rem'; inpTotal.style.width = '100px';
             inpTotal.addEventListener('change', (e) => { p.total = validarVotos(e.target.value); renderizarTabela(); atualizarResultados(); });
             divTotal.appendChild(inpTotal);
             const somaCand = p.candidatos.reduce((s, c) => s + c.votos, 0);
             if (somaCand > p.total) {
-                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle'; warn.style.color = '#f59e0b'; warn.style.marginLeft = '0.5rem'; warn.title = `Soma dos candidatos (${somaCand}) excede o total informado (${p.total}). O cálculo usa o total informado.`;
+                const warn = document.createElement('i'); warn.className = 'fas fa-exclamation-triangle'; warn.style.color = 'var(--warning)'; warn.style.marginLeft = '0.5rem';
+                warn.title = `Soma dos candidatos (${somaCand}) excede o total informado (${p.total}). O cálculo usa o total informado.`;
                 divTotal.appendChild(warn);
             }
             tdTotal.appendChild(divTotal);
@@ -633,22 +500,22 @@
             p.candidatos.forEach((cand, cidx) => {
                 const row = document.createElement('div'); row.className = 'candidato-row';
                 row.innerHTML = `
-                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px; background:var(--bg-input); border:1px solid #e2e8f0; border-radius:0.8rem; padding:0.3rem 0.6rem;">
-                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px; background:var(--bg-input); border:1px solid #e2e8f0; border-radius:0.8rem; padding:0.3rem 0.6rem;">
-                    <button class="btn btn-sm btn-outline" data-remove-cand data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
+                    <input type="text" value="${escapeHtml(cand.nome)}" data-cand-nome data-pidx="${idx}" data-cidx="${cidx}" maxlength="30" style="width:120px;">
+                    <input type="number" value="${cand.votos}" data-cand-voto data-pidx="${idx}" data-cidx="${cidx}" min="0" style="width:90px;">
+                    <button class="btn-sm btn-outline" data-remove-cand data-pidx="${idx}" data-cidx="${cidx}"><i class="fas fa-trash"></i></button>
                 `;
                 container.appendChild(row);
             });
             const addDiv = document.createElement('div'); addDiv.className = 'add-cand-form';
             addDiv.innerHTML = `
-                <input type="text" id="newCandNome_${idx}" placeholder="Nome" maxlength="30" style="flex:1; background:var(--bg-input); border:1px solid #e2e8f0; border-radius:0.8rem; padding:0.4rem;">
-                <input type="number" id="newCandVotos_${idx}" placeholder="Votos" min="0" value="0" style="width:100px; background:var(--bg-input); border:1px solid #e2e8f0; border-radius:0.8rem; padding:0.4rem;">
-                <button class="btn btn-sm btn-outline" data-add-cand data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>
+                <input type="text" id="newCandNome_${idx}" placeholder="Nome" maxlength="30" style="flex:1;">
+                <input type="number" id="newCandVotos_${idx}" placeholder="Votos" min="0" value="0" style="width:100px;">
+                <button class="btn-sm btn-outline" data-add-cand data-idx="${idx}"><i class="fas fa-plus"></i> Adicionar</button>
             `;
             container.appendChild(addDiv);
             tdCand.appendChild(container);
             const tdAcoes = document.createElement('td');
-            const btnDel = document.createElement('button'); btnDel.innerHTML = '<i class="fas fa-times-circle"></i>'; btnDel.className = 'btn btn-sm btn-outline'; btnDel.style.color = '#dc2626';
+            const btnDel = document.createElement('button'); btnDel.innerHTML = '<i class="fas fa-times-circle"></i>'; btnDel.className = 'btn-sm btn-outline'; btnDel.style.color = 'var(--danger)';
             btnDel.addEventListener('click', () => { partidos.splice(idx, 1); renderizarTabela(); atualizarResultados(); });
             tdAcoes.appendChild(btnDel);
             tr.append(tdNome, tdTotal, tdCand, tdAcoes);
@@ -680,12 +547,12 @@
         }));
     }
 
-    // ==================== ATUALIZAÇÃO QE E RESULTADOS ====================
+    // ==================== ATUALIZAÇÃO DO QE E RESULTADOS ====================
     function atualizarQE() {
         const votosValidos = validarVotos(document.getElementById('totalVotos').value);
         const cadeiras = validarVotos(document.getElementById('numCadeiras').value);
-        if (cadeiras === 0) {
-            document.getElementById('qeInfo').innerHTML = '⚠️ Número de cadeiras deve ser maior que zero.';
+        if (votosValidos === 0 || cadeiras === 0) {
+            document.getElementById('qeInfo').innerHTML = '⚠️ Preencha os votos válidos e o número de cadeiras para calcular o Quociente Eleitoral.';
             return;
         }
         const QE = Math.floor(votosValidos / cadeiras);
@@ -714,13 +581,13 @@
         html += `</ul>`;
         statsDiv.innerHTML = html;
 
-        // Gráfico de barras horizontais
+        // GRÁFICO DE BARRAS HORIZONTAIS
         const ctx = document.getElementById('vagasChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         const partidosComVagas = dados.partidos.filter(p => p.total > 0);
         const labels = partidosComVagas.map(p => p.nome);
         const valores = partidosComVagas.map(p => dados.vagasPorPartido[p.nome]?.total || 0);
-        const cores = ['#1e7e6c','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec489a','#06b6d4','#84cc16','#f97316','#d946ef','#14b8a6','#f43f5e','#6366f1','#a855f7','#eab308','#22c55e'];
+        const cores = ['#0f766e','#2c7da0','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec489a','#06b6d4','#84cc16','#f97316','#d946ef','#14b8a6','#f43f5e','#6366f1','#a855f7','#eab308','#22c55e'];
         if (labels.length) {
             chartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -730,7 +597,9 @@
                         label: 'Cadeiras',
                         data: valores,
                         backgroundColor: cores.slice(0, labels.length),
-                        borderRadius: 8,
+                        borderColor: cores.slice(0, labels.length),
+                        borderWidth: 1,
+                        borderRadius: 6,
                         barPercentage: 0.7,
                         categoryPercentage: 0.8
                     }]
@@ -785,7 +654,7 @@
                 doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
                 y += imgHeight + 10;
             } else { doc.text("(Gráfico não disponível)", pageWidth/2, y, { align: "center" }); y += 10; }
-            doc.autoTable({ startY: y, head: [['Partido','Total Votos','Diretas','Sobras','Total']], body: dados.partidos.map(p => { let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 }; return [p.nome, p.total, v.diretas, v.sobras, v.total]; }), theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [30,126,108] } });
+            doc.autoTable({ startY: y, head: [['Partido','Total Votos','Diretas','Sobras','Total']], body: dados.partidos.map(p => { let v = dados.vagasPorPartido[p.nome] || { diretas:0, sobras:0, total:0 }; return [p.nome, p.total, v.diretas, v.sobras, v.total]; }), theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [15,118,110] } });
             y = doc.lastAutoTable.finalY + 10;
             doc.text("Candidatos Eleitos", 14, y); y += 6;
             doc.autoTable({ startY: y, head: [['Partido','Candidato','Votos','Tipo']], body: dados.eleitos.map(e => [e.partido, e.candidato, e.votos, e.tipo]), theme: 'striped', styles: { fontSize: 9 } });
@@ -799,7 +668,6 @@
 
     // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', () => {
-        // Tema
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         document.getElementById('themeToggle').addEventListener('click', () => {
             document.body.classList.toggle('dark');
